@@ -1,0 +1,352 @@
+:root{
+  --brand:#004536;
+  --brand-dark:#00332a;
+  --brand-light:#e5efec;
+  --ink:#3d3d3d;
+  --ink-soft:#6b6b6b;
+  --bg:#ffffff;
+  --bg-alt:#f7f6f2;
+  --line:#e6e3da;
+  --radius:12px;
+  --font-head:"Red Hat Display", sans-serif;
+  --font-body:"Open Sans", sans-serif;
+}
+
+*{box-sizing:border-box; margin:0; padding:0;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:var(--font-body);
+  color:var(--ink);
+  background:var(--bg);
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+img{max-width:100%; display:block;}
+a{text-decoration:none; color:inherit;}
+ul,ol{list-style:none;}
+button{font-family:inherit; border:none; background:none; cursor:pointer;}
+select,input{font-family:inherit;}
+
+.container{width:100%; max-width:1240px; margin:0 auto; padding:0 32px;}
+
+h1,h2,h3{font-family:var(--font-head); color:var(--ink); font-weight:700;}
+
+.eyebrow{
+  display:block; font-family:var(--font-head); font-size:13px; font-weight:700;
+  letter-spacing:.06em; text-transform:uppercase; color:var(--brand); margin-bottom:14px;
+}
+.eyebrow--light{color:rgba(255,255,255,.6);}
+.section-title{font-size:clamp(26px,3.4vw,38px); font-weight:700; max-width:640px; margin-bottom:20px;}
+
+/* Buttons */
+.btn{
+  display:inline-flex; align-items:center; gap:8px;
+  padding:13px 24px; border-radius:var(--radius);
+  font-family:var(--font-head); font-size:14.5px; font-weight:700;
+  white-space:nowrap; transition:opacity .2s ease, transform .2s ease;
+}
+.btn:hover{transform:translateY(-1px);}
+.btn--solid{background:var(--brand); color:#fff;}
+.btn--outline-dark{border:1.5px solid var(--brand); color:var(--brand);}
+
+/* Header — transparent over the hero, solidifies on scroll (matches the findrealestate reference) */
+.header{
+  position:fixed; top:0; left:0; right:0; z-index:100;
+  background:transparent; border-bottom:1px solid transparent;
+  transition:background .35s ease, border-color .35s ease, backdrop-filter .35s ease;
+}
+.header.is-solid{background:rgba(255,255,255,.96); backdrop-filter:blur(8px); border-bottom-color:var(--line);}
+.header__inner{display:flex; align-items:center; justify-content:space-between; padding:16px 32px;}
+.logo{display:flex; align-items:center; gap:10px; color:#fff; transition:color .35s ease;}
+.header.is-solid .logo{color:var(--brand);}
+.logo__icon{flex-shrink:0;}
+.logo__text{
+  font-family:var(--font-head); font-weight:900; font-size:22px; letter-spacing:.01em;
+  display:flex; flex-direction:column; line-height:1.1; color:#fff; transition:color .35s ease;
+}
+.header.is-solid .logo__text{color:var(--brand);}
+.logo__text small{font-family:var(--font-body); font-weight:600; font-size:9.5px; letter-spacing:.12em; text-transform:uppercase; color:rgba(255,255,255,.65); transition:color .35s ease;}
+.header.is-solid .logo__text small{color:var(--ink-soft);}
+.logo__text--light{color:#fff;}
+.logo__text--light small{color:rgba(255,255,255,.55);}
+
+.nav{display:flex; align-items:center; gap:32px;}
+.nav a{font-family:var(--font-head); font-size:14.5px; font-weight:700; color:#fff; transition:color .35s ease;}
+.header.is-solid .nav a{color:var(--ink);}
+.nav a:hover{color:var(--brand-light);}
+.header.is-solid .nav a:hover{color:var(--brand);}
+
+.header__actions{display:flex; align-items:center; gap:20px;}
+.header__phone{display:flex; align-items:center; gap:7px; font-family:var(--font-head); font-weight:700; font-size:14.5px; color:#fff; transition:color .35s ease;}
+.header.is-solid .header__phone{color:var(--brand);}
+.burger{display:none; flex-direction:column; gap:5px; width:32px; height:32px; align-items:center; justify-content:center;}
+.burger span{width:20px; height:2px; background:#fff; transition:background .35s ease;}
+.header.is-solid .burger span{background:var(--ink);}
+
+.burger-menu{position:fixed; inset:0; z-index:200; visibility:hidden; opacity:0; transition:opacity .3s ease;}
+.burger-menu.is-open{visibility:visible; opacity:1;}
+.burger-menu__backdrop{position:absolute; inset:0; background:rgba(0,0,0,.4);}
+.burger-menu__content{
+  position:absolute; top:0; right:0; bottom:0; width:min(80vw,360px); background:#fff;
+  padding:100px 32px 40px; display:flex; flex-direction:column; gap:40px;
+  transform:translateX(100%); transition:transform .35s ease;
+}
+.burger-menu.is-open .burger-menu__content{transform:translateX(0);}
+.burger-menu__content nav{display:flex; flex-direction:column; gap:20px; font-family:var(--font-head); font-weight:700; font-size:19px;}
+
+/* Hero — pinned scroll effect: photo zooms, clouds drift, wordmark emerges.
+   500vh total / 100vh pin = 400vh of scroll-scrubbed animation, matching the
+   findrealestate.com reference exactly (measured: 2885px root / 577px viewport). */
+.hero{position:relative; height:500vh;}
+.hero__pin{
+  position:sticky; top:0; height:100vh; overflow:hidden;
+  display:flex; align-items:center; justify-content:center;
+}
+/* Overscanned well past the pin's 100vh (~225vh total, matching the reference's own
+   ~210% house-layer ratio) so the upward pan/zoom never runs out of image and exposes
+   an empty gap at the bottom. */
+.hero__photo{
+  position:absolute; top:-15%; left:-8%; right:-8%; bottom:-110%;
+  background:
+    linear-gradient(180deg, rgba(13,58,44,0) 0%, rgba(13,58,44,.15) 55%, rgba(13,58,44,.5) 100%),
+    url('https://images.unsplash.com/photo-1661595705868-4446becc7c8b?w=1800&q=80&auto=format&fit=crop') center/cover;
+  will-change:transform;
+}
+.hero__scrim{
+  position:absolute; inset:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 40%, transparent 40%, rgba(0,15,11,.35) 100%),
+    linear-gradient(180deg, rgba(0,20,15,.38) 0%, rgba(0,20,15,.06) 35%, rgba(0,20,15,.18) 65%, rgba(0,20,15,.68) 100%);
+}
+
+/* CSS-only cloud layer: soft blurred blobs drifting across the scene */
+.hero__clouds{position:absolute; inset:0; z-index:2; pointer-events:none; overflow:hidden;}
+.cloud{
+  position:absolute; border-radius:50%;
+  background:radial-gradient(ellipse at center, rgba(255,255,255,1), rgba(255,255,255,0) 68%);
+  filter:blur(14px);
+  will-change:transform, opacity;
+}
+.cloud--1{width:560px; height:200px; top:18%; left:-15%; animation:cloudDrift1 46s linear infinite;}
+.cloud--2{width:460px; height:170px; top:34%; left:60%;  animation:cloudDrift2 58s linear infinite;}
+.cloud--3{width:640px; height:240px; top:66%; left:-25%; animation:cloudDrift1 64s linear infinite reverse; opacity:.85;}
+.cloud--4{width:420px; height:160px; top:80%; left:70%;  animation:cloudDrift2 40s linear infinite;}
+.cloud--5{width:760px; height:260px; top:94%; left:-10%; animation:cloudDrift1 74s linear infinite; opacity:.95;}
+@keyframes cloudDrift1{from{transform:translateX(0);} to{transform:translateX(130vw);}}
+@keyframes cloudDrift2{from{transform:translateX(0);} to{transform:translateX(-130vw);}}
+
+/* Thin ground-level haze right at the bottom edge only — kept small on purpose so it
+   never reads as a big static band; the clouds layer is what does the visible rising. */
+.hero__haze{
+  position:absolute; inset:0; z-index:3; pointer-events:none;
+  background:linear-gradient(180deg, transparent 88%, rgba(255,255,255,.16) 100%);
+}
+
+.hero__content{position:relative; z-index:4; color:#fff; text-align:center; padding:0 32px; will-change:transform, opacity;}
+.hero__title{font-size:clamp(38px,6vw,64px); line-height:1.06; margin-bottom:20px; text-shadow:0 2px 20px rgba(0,0,0,.25); color:#fff;}
+.hero__subtitle{font-size:18px; max-width:560px; margin:0 auto 44px; color:rgba(255,255,255,.9);}
+
+.hero__wordmark{
+  position:absolute; z-index:1; inset:0;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  opacity:0; pointer-events:none; text-align:center;
+  will-change:transform, opacity;
+}
+/* The building photo shows through the letters (same image as the hero photo behind),
+   so as the wordmark grows it visually "fills in" with the house — the depth illusion
+   the reference site does with its FIND mark. */
+.hero__wordmark-main{
+  font-family:var(--font-head); font-weight:900; letter-spacing:.01em;
+  font-size:clamp(64px,14vw,220px); line-height:1;
+  background:url('https://images.unsplash.com/photo-1661595705868-4446becc7c8b?w=1200&q=70&auto=format&fit=crop') center 30%/cover;
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  -webkit-text-stroke:1.5px rgba(255,255,255,.9);
+  filter:drop-shadow(0 2px 30px rgba(0,0,0,.3));
+}
+.hero__wordmark-sub{
+  font-family:var(--font-head); font-weight:700; letter-spacing:.3em; text-transform:uppercase;
+  font-size:clamp(12px,1.6vw,20px); color:rgba(255,255,255,.8); margin-top:6px;
+  text-shadow:0 2px 12px rgba(0,0,0,.4);
+}
+
+/* Full whiteout that fades in near the very end of the hero, letting the clouds
+   visually "swallow" the scene before the next section's content appears underneath. */
+.hero__whiteout{
+  position:absolute; inset:0; z-index:5; pointer-events:none;
+  background:var(--bg-alt); opacity:0; will-change:opacity;
+}
+
+.hero__scrollcue{
+  position:absolute; z-index:4; bottom:28px; left:50%; transform:translateX(-50%);
+  color:rgba(255,255,255,.75); font-family:var(--font-head); font-size:11px; font-weight:700;
+  letter-spacing:.2em; text-transform:uppercase; display:flex; flex-direction:column; align-items:center; gap:8px;
+}
+.hero__scrollcue::after{
+  content:''; width:1px; height:26px; background:rgba(255,255,255,.6);
+  animation:scrollcue 1.8s ease-in-out infinite;
+}
+@keyframes scrollcue{0%{transform:scaleY(0); transform-origin:top;} 50%{transform:scaleY(1); transform-origin:top;} 50.01%{transform-origin:bottom;} 100%{transform:scaleY(0); transform-origin:bottom;}}
+
+.hero__cta{margin-top:8px; padding:16px 30px; font-size:15.5px; box-shadow:0 16px 34px -14px rgba(0,0,0,.5);}
+
+/* Why Téssera — narrative text + looping video */
+.whyus{padding:140px 0 0;}
+.whyus__grid{max-width:820px; margin-left:auto; margin-right:auto; text-align:left;}
+.whyus__heading{font-size:clamp(26px,3.6vw,42px); font-weight:600; line-height:1.3;}
+.whyus__heading .is-strong{color:var(--ink); font-weight:700;}
+.whyus__heading .is-muted{color:var(--ink-soft);}
+.whyus__media{margin:60px auto 0; max-width:1240px; padding:0 32px;}
+.whyus__media video{width:100%; height:560px; object-fit:cover; border-radius:var(--radius); display:block; background:var(--brand-dark);}
+
+/* Isso não é só sobre imóveis — chevron gallery */
+.chevrons{padding:140px 0; text-align:center; overflow:hidden;}
+.chevrons__title{font-size:clamp(28px,4.4vw,48px); font-weight:600; max-width:820px; margin:0 auto 90px;}
+.chevrons__row{display:flex; justify-content:center; gap:2px; margin-bottom:90px; padding:0 20px;}
+.chevron{
+  width:230px; height:280px; background-size:cover; background-position:center;
+  clip-path:polygon(35% 0, 100% 0, 65% 100%, 0 100%);
+  margin-left:-40px;
+}
+.chevron:first-child{margin-left:0;}
+.chevrons__text{font-size:clamp(20px,2.6vw,30px); font-weight:500; max-width:760px; margin:0 auto; line-height:1.4;}
+.chevrons__text .is-strong{color:var(--ink);}
+.chevrons__text .is-muted{color:var(--ink-soft);}
+
+/* Stats */
+.stats{background:var(--bg-alt); padding:56px 0;}
+.stats__grid{display:grid; grid-template-columns:repeat(3,1fr); gap:24px; text-align:center;}
+.stats__num{display:block; font-family:var(--font-head); font-size:clamp(32px,4vw,48px); font-weight:900; color:var(--brand);}
+.stats__label{font-size:14px; color:var(--ink-soft);}
+
+/* Segments */
+.segments{padding:100px 0;}
+.segments .container:first-child{margin-bottom:48px;}
+.segments__grid{display:grid; grid-template-columns:repeat(3,1fr); gap:24px;}
+.segments__card{
+  position:relative; border-radius:var(--radius); overflow:hidden;
+  aspect-ratio:4/5; background-size:cover; background-position:center;
+  transition:transform .3s ease, background-size .5s ease;
+}
+.segments__card:hover{background-size:auto 112%;}
+.segments__card::before{
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(180deg, rgba(0,20,15,.15) 0%, rgba(0,20,15,.75) 100%);
+}
+.segments__card:hover{transform:translateY(-4px);}
+.segments__card-inner{position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:flex-end; padding:28px;}
+.segments__card h3{font-size:22px; margin-bottom:10px; color:#fff;}
+.segments__card p{color:rgba(255,255,255,.8); font-size:14.5px; margin-bottom:18px;}
+.segments__link{font-family:var(--font-head); font-weight:700; font-size:14px; color:#fff;}
+
+/* Listings */
+.listings{padding:100px 0; background:var(--bg-alt);}
+.listings__header{display:flex; justify-content:space-between; align-items:flex-end; gap:24px; margin-bottom:44px; flex-wrap:wrap;}
+.listings__header .section-title{margin-bottom:0;}
+.listings__grid{display:grid; grid-template-columns:repeat(3,1fr); gap:24px;}
+.listing-card{background:#fff; border-radius:var(--radius); overflow:hidden; border:1px solid var(--line);}
+.listing-card__img{height:220px; background-size:cover; background-position:center; position:relative;}
+.listing-card__tag{
+  position:absolute; top:14px; left:14px; background:var(--brand); color:#fff;
+  font-family:var(--font-head); font-size:11.5px; font-weight:700; padding:5px 12px; border-radius:100px;
+}
+.listing-card__body{padding:20px;}
+.listing-card__code{font-size:12px; color:var(--ink-soft); letter-spacing:.03em;}
+.listing-card__body h3{font-size:17px; margin:6px 0 8px;}
+.listing-card__specs{font-size:13.5px; color:var(--ink-soft); margin-bottom:10px;}
+.listing-card__price{font-family:var(--font-head); font-weight:900; font-size:19px; color:var(--brand);}
+
+/* Big text Comprar/Alugar */
+.bigtext{background:var(--brand); color:#fff;}
+.bigtext__row{display:grid; grid-template-columns:1fr 1fr; align-items:center; padding:56px 0; border-bottom:1px solid rgba(255,255,255,.15);}
+.bigtext__row:last-child{border-bottom:none;}
+.bigtext__info{max-width:380px;}
+.bigtext__info p{color:rgba(255,255,255,.8); font-size:16px;}
+.bigtext h2{font-size:clamp(56px,10vw,120px); text-align:right; color:#fff; line-height:.9;}
+
+/* Regions */
+.regions{padding:100px 0;}
+.regions__chips{display:flex; flex-wrap:wrap; gap:10px; margin-top:20px;}
+.chip{
+  padding:9px 18px; border-radius:100px; border:1px solid var(--line);
+  font-family:var(--font-head); font-weight:700; font-size:13.5px; color:var(--ink);
+}
+.chip--solid{background:var(--brand); color:#fff; border-color:var(--brand);}
+
+/* Dark CTA */
+.darkcta{background:var(--brand-dark); color:#fff; padding:80px 0;}
+.darkcta__grid{display:grid; grid-template-columns:1fr auto; gap:40px; align-items:center;}
+.darkcta h2{color:#fff; font-size:clamp(26px,3.4vw,36px); margin-bottom:10px; max-width:460px;}
+.darkcta > .container > div > p{color:rgba(255,255,255,.7);}
+.darkcta__info{display:flex; gap:44px; flex-wrap:wrap;}
+.darkcta__info p{font-size:16px; margin-top:2px;}
+.darkcta__info a{font-weight:700; text-decoration:underline;}
+
+/* Services */
+.services{padding:100px 0; background:var(--bg-alt);}
+.services__grid{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:28px;}
+.services__item{
+  background:#fff; border:1px solid var(--line); border-radius:var(--radius);
+  padding:18px 20px; font-family:var(--font-head); font-weight:700; font-size:14.5px;
+  display:flex; flex-direction:column; gap:4px; transition:border-color .2s ease;
+}
+.services__item:hover{border-color:var(--brand);}
+.services__item small{font-family:var(--font-body); font-weight:400; color:var(--ink-soft); font-size:12.5px;}
+
+/* Final CTA */
+.finalcta{position:relative; padding:170px 32px; text-align:center; overflow:hidden;}
+.finalcta__bg{position:absolute; inset:0; background-size:cover; background-position:center;}
+.finalcta__bg::after{content:''; position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,20,15,.35), rgba(0,20,15,.6));}
+.finalcta__content{position:relative; z-index:1;}
+.finalcta h2{color:#fff; font-size:clamp(30px,5vw,54px); margin-bottom:36px;}
+.finalcta h2 .is-muted{color:rgba(255,255,255,.65);}
+.finalcta__btn{padding:16px 30px; font-size:15.5px;}
+
+/* Footer */
+.footer{background:var(--brand-dark); color:#fff; padding-top:70px;}
+.footer__top{display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:40px; padding-bottom:50px; border-bottom:1px solid rgba(255,255,255,.12);}
+.footer__brand p{color:rgba(255,255,255,.6); font-size:13px; margin-top:10px;}
+.footer p{font-size:14.5px; margin-bottom:6px; color:rgba(255,255,255,.85);}
+.footer a:hover{text-decoration:underline;}
+.footer__legal{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px; padding:22px 0; font-size:13px; color:rgba(255,255,255,.55);}
+.footer__legal-links{display:flex; gap:20px;}
+
+@media (max-width:900px){
+  .nav{display:none;}
+  .burger{display:flex;}
+  .header__phone{display:none;}
+  .segments__grid, .listings__grid, .services__grid{grid-template-columns:1fr;}
+  .searchbar{flex-direction:column; align-items:stretch;}
+  .bigtext__row{grid-template-columns:1fr; text-align:left;}
+  .bigtext h2{text-align:left;}
+  .darkcta__grid{grid-template-columns:1fr;}
+  .footer__top{grid-template-columns:1fr 1fr; gap:28px;}
+}
+
+/* Scroll-triggered reveals — applied across every section, not just the hero */
+.reveal-text .is-muted{opacity:.4; transition:opacity .6s ease;}
+.reveal-text.is-revealed .is-muted{opacity:1;}
+
+.fade-up{opacity:0; transform:translateY(28px); transition:opacity .7s cubic-bezier(.16,.8,.3,1), transform .7s cubic-bezier(.16,.8,.3,1);}
+.fade-up.is-revealed{opacity:1; transform:translateY(0);}
+.fade-up-group > *{opacity:0; transform:translateY(28px); transition:opacity .7s cubic-bezier(.16,.8,.3,1), transform .7s cubic-bezier(.16,.8,.3,1);}
+.fade-up-group.is-revealed > *{opacity:1; transform:translateY(0);}
+.fade-up-group > *:nth-child(1){transition-delay:0s;}
+.fade-up-group > *:nth-child(2){transition-delay:.1s;}
+.fade-up-group > *:nth-child(3){transition-delay:.2s;}
+.fade-up-group > *:nth-child(4){transition-delay:.3s;}
+.fade-up-group > *:nth-child(5){transition-delay:.4s;}
+.fade-up-group > *:nth-child(6){transition-delay:.5s;}
+
+@media (prefers-reduced-motion: reduce){
+  .reveal-text .is-muted, .fade-up, .fade-up-group > *{opacity:1; transform:none; transition:none;}
+  .cloud{animation:none;}
+}
+
+/* Listing / segment image hover lift */
+.listing-card{transition:transform .35s ease, box-shadow .35s ease;}
+.listing-card:hover{transform:translateY(-6px); box-shadow:0 24px 40px -24px rgba(0,20,15,.25);}
+.listing-card__img{overflow:hidden; transition:background-size .5s ease;}
+.listing-card:hover .listing-card__img{background-size:auto 115%;}
+
+.services__item{transition:border-color .25s ease, transform .25s ease;}
+.services__item:hover{transform:translateY(-3px);}
