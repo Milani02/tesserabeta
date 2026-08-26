@@ -4,7 +4,8 @@ Mockup estático (HTML/CSS/JS puro, sem build step) do site institucional da Té
 Imobiliários (CRECI 8380J), feito para a fase de design de uma proposta comercial de redesign.
 
 Veja `CLAUDE.md` para o contexto completo do projeto: de onde veio a identidade visual, de onde
-vieram os efeitos de scroll, e o que já foi decidido.
+vieram os efeitos de scroll, e o que já foi decidido. Veja `SKILLS.md` para a lista de skills do
+Claude Code que estavam instaladas na máquina onde este projeto foi construído.
 
 ## Rodando localmente
 
