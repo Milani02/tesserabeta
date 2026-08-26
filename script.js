@@ -43,7 +43,7 @@ function updateHero(){
   // Finale clouds: held just below the frame and invisible almost the whole way,
   // then rise up FAST in a short burst right at the very end — quick, not a slow
   // build — so the next section is already showing by the time the pin releases.
-  const finaleIn = clamp01((progress - 0.94) / 0.06);
+  const finaleIn = clamp01((progress - 0.90) / 0.10);
   heroCloudsFinale.style.opacity = String(finaleIn);
   heroCloudsFinale.style.transform = `translateY(${(1 - finaleIn) * 45}%) scale(${1 + finaleIn * 0.45})`;
 }

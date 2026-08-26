@@ -147,7 +147,7 @@ h1,h2,h3{font-family:var(--font-head); color:var(--ink); font-weight:700;}
 /* Finale clouds: real cloud shapes (not a solid band) held just below the frame,
    invisible, until the very last bit of scroll — then they rise up fast and fade
    in, right before the pin releases into the next section. Quick, not a slow build. */
-.hero__clouds--finale{z-index:3;}
+.hero__clouds--finale{z-index:3; transition:transform .5s cubic-bezier(.16,.8,.3,1), opacity .5s ease-out;}
 .cloud--finale-1{width:1100px; height:610px; top:60%; left:-15%;}
 .cloud--finale-2{width:1300px; height:720px; top:70%; left:30%;}
 .cloud--finale-3{width:1000px; height:560px; top:80%; left:65%;}
