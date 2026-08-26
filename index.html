@@ -6,7 +6,7 @@
 <title>Téssera Negócios Imobiliários</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;700;900&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=13">
+<link rel="stylesheet" href="styles.css?v=21">
 </head>
 <body>
 
@@ -60,11 +60,16 @@
       <div class="hero__photo" id="heroPhoto"></div>
       <div class="hero__scrim"></div>
       <div class="hero__clouds" id="heroClouds">
-        <span class="cloud cloud--1"></span>
-        <span class="cloud cloud--2"></span>
-        <span class="cloud cloud--3"></span>
-        <span class="cloud cloud--4"></span>
-        <span class="cloud cloud--5"></span>
+        <span class="cloud cloud--1" style="background-image:url('images/cloud-2.jpg')"></span>
+        <span class="cloud cloud--2" style="background-image:url('images/cloud-1.jpg')"></span>
+        <span class="cloud cloud--3" style="background-image:url('images/cloud-2.jpg')"></span>
+        <span class="cloud cloud--4" style="background-image:url('images/cloud-1.jpg')"></span>
+      </div>
+      <div class="hero__clouds hero__clouds--finale" id="heroCloudsFinale">
+        <span class="cloud cloud--finale-1" style="background-image:url('images/cloud-1.jpg')"></span>
+        <span class="cloud cloud--finale-2" style="background-image:url('images/cloud-2.jpg')"></span>
+        <span class="cloud cloud--finale-3" style="background-image:url('images/cloud-1.jpg')"></span>
+        <span class="cloud cloud--finale-4" style="background-image:url('images/cloud-2.jpg')"></span>
       </div>
       <div class="hero__haze"></div>
 
@@ -79,7 +84,6 @@
         <span class="hero__wordmark-sub">Negócios Imobiliários</span>
       </div>
 
-      <div class="hero__whiteout" id="heroWhiteout"></div>
       <div class="hero__scrollcue">rolar</div>
     </div>
   </section>
@@ -115,6 +119,40 @@
       <span class="is-strong">É sobre identidade. Progresso. Sair do lugar.</span>
       <span class="is-muted">Você não está só procurando um imóvel — está procurando alinhamento. É isso que ajudamos você a encontrar.</span>
     </p>
+  </section>
+
+  <!-- COMO FUNCIONA (rewired / steps) -->
+  <section class="rewired">
+    <div class="container rewired__grid">
+      <div class="rewired__left fade-up">
+        <span class="eyebrow">Como funciona</span>
+        <h2>Imóveis, <span class="is-muted">sem enrolação.</span></h2>
+        <a href="#comprar" class="btn btn--solid">Começar agora <span>&rarr;</span></a>
+      </div>
+      <ol class="steps fade-up-group">
+        <li>
+          <span class="steps__num">01</span>
+          <div>
+            <h3>Fale com um corretor de verdade</h3>
+            <p>Conectamos você com quem realmente conhece a região — sem robô de triagem.</p>
+          </div>
+        </li>
+        <li>
+          <span class="steps__num">02</span>
+          <div>
+            <h3>Veja imóveis selecionados</h3>
+            <p>Curadoria feita pra encaixar no que você precisa, não numa lista genérica.</p>
+          </div>
+        </li>
+        <li>
+          <span class="steps__num">03</span>
+          <div>
+            <h3>Feche negócio com segurança</h3>
+            <p>Acompanhamento em cada etapa, da proposta até a assinatura.</p>
+          </div>
+        </li>
+      </ol>
+    </div>
   </section>
 
   <!-- STATS -->
@@ -328,6 +366,6 @@
   </div>
 </footer>
 
-<script src="script.js"></script>
+<script src="script.js?v=4"></script>
 </body>
 </html>

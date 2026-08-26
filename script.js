@@ -9,7 +9,7 @@ const heroPhoto = document.getElementById('heroPhoto');
 const heroContent = document.getElementById('heroContent');
 const heroWordmark = document.getElementById('heroWordmark');
 const heroClouds = document.getElementById('heroClouds');
-const heroWhiteout = document.getElementById('heroWhiteout');
+const heroCloudsFinale = document.getElementById('heroCloudsFinale');
 
 function clamp01(n){ return Math.min(Math.max(n, 0), 1); }
 function lerp(a, b, t){ return a + (b - a) * t; }
@@ -27,9 +27,9 @@ function updateHero(){
 
   // Wordmark: fades in small, GROWS continuously while descending (matches the
   // reference — the mark doesn't hold still, it scales up and drifts down as the
-  // house shows through it), then the whiteout below swallows it near the end.
+  // house shows through it), then fades out while the clouds take over below.
   const wmIn = clamp01((progress - 0.05) / 0.15);
-  const wmOut = clamp01((progress - 0.72) / 0.16);
+  const wmOut = clamp01((progress - 0.68) / 0.24);
   const wordmarkOp = wmIn * (1 - wmOut);
   const wmGrow = clamp01((progress - 0.05) / 0.72);
   heroWordmark.style.opacity = String(wordmarkOp);
@@ -37,13 +37,15 @@ function updateHero(){
 
   heroPhoto.style.transform = `translateY(${progress * -0.82 * vh}px) scale(${1 + progress * 0.29})`;
 
-  // Clouds rise the whole way AND thicken (grow + brighten) in the final third,
-  // so they visibly "take over" the frame right before the next section appears.
-  const cloudsThicken = clamp01((progress - 0.65) / 0.35);
-  heroClouds.style.transform = `translateY(${progress * -0.5 * vh}px) scale(${1 + cloudsThicken * 0.6})`;
-  heroClouds.style.opacity = String(1);
+  // Clouds rise slowly the whole way through.
+  heroClouds.style.transform = `translateY(${progress * -0.35 * vh}px)`;
 
-  heroWhiteout.style.opacity = String(clamp01((progress - 0.8) / 0.18));
+  // Finale clouds: held just below the frame and invisible almost the whole way,
+  // then rise up FAST in a short burst right at the very end — quick, not a slow
+  // build — so the next section is already showing by the time the pin releases.
+  const finaleIn = clamp01((progress - 0.94) / 0.06);
+  heroCloudsFinale.style.opacity = String(finaleIn);
+  heroCloudsFinale.style.transform = `translateY(${(1 - finaleIn) * 45}%) scale(${1 + finaleIn * 0.45})`;
 }
 window.addEventListener('scroll', updateHero, { passive: true });
 window.addEventListener('resize', updateHero);

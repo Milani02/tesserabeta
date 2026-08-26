@@ -13,7 +13,8 @@
 }
 
 *{box-sizing:border-box; margin:0; padding:0;}
-html{scroll-behavior:smooth;}
+/* No scroll-behavior:smooth on purpose — it fights the scroll-scrubbed hero pin
+   (browser-animated scroll + our per-frame scroll-position math = jumps/blank frames). */
 body{
   font-family:var(--font-body);
   color:var(--ink);
@@ -109,7 +110,7 @@ h1,h2,h3{font-family:var(--font-head); color:var(--ink); font-weight:700;}
   position:absolute; top:-15%; left:-8%; right:-8%; bottom:-110%;
   background:
     linear-gradient(180deg, rgba(13,58,44,0) 0%, rgba(13,58,44,.15) 55%, rgba(13,58,44,.5) 100%),
-    url('https://images.unsplash.com/photo-1661595705868-4446becc7c8b?w=1800&q=80&auto=format&fit=crop') center/cover;
+    url('images/hero-house.jpg') center/cover;
   will-change:transform;
 }
 .hero__scrim{
@@ -119,21 +120,38 @@ h1,h2,h3{font-family:var(--font-head); color:var(--ink); font-weight:700;}
     linear-gradient(180deg, rgba(0,20,15,.38) 0%, rgba(0,20,15,.06) 35%, rgba(0,20,15,.18) 65%, rgba(0,20,15,.68) 100%);
 }
 
-/* CSS-only cloud layer: soft blurred blobs drifting across the scene */
-.hero__clouds{position:absolute; inset:0; z-index:2; pointer-events:none; overflow:hidden;}
+/* Real cloud photography (shot on black, see images/cloud-*.jpg) composited with
+   mix-blend-mode:screen — black pixels vanish, only the white cloud texture shows,
+   same technique the reference site uses with its own cloud/smoke image layers. */
+/* mix-blend-mode lives on the CONTAINER, not the individual .cloud children.
+   .hero__clouds has z-index (so it needs its own stacking context for layering),
+   which means any blend-mode set on a CHILD would only blend within that isolated
+   context and never reach the photo behind it. Blending the container as one
+   already-composited unit against its siblings is what actually works. */
+.hero__clouds{position:absolute; inset:0; z-index:2; pointer-events:none; overflow:hidden; mix-blend-mode:screen;}
 .cloud{
-  position:absolute; border-radius:50%;
-  background:radial-gradient(ellipse at center, rgba(255,255,255,1), rgba(255,255,255,0) 68%);
-  filter:blur(14px);
-  will-change:transform, opacity;
+  position:absolute; background-size:cover; background-position:center;
+  /* Feathers every edge of the box so the photo's own rectangular boundary never
+     shows — no visible "square" no matter how the source image crops, since the
+     mask fades to fully transparent well before the edge regardless of pixel content. */
+  -webkit-mask-image:radial-gradient(ellipse 62% 62% at center, #000 35%, transparent 72%);
+  mask-image:radial-gradient(ellipse 62% 62% at center, #000 35%, transparent 72%);
 }
-.cloud--1{width:560px; height:200px; top:18%; left:-15%; animation:cloudDrift1 46s linear infinite;}
-.cloud--2{width:460px; height:170px; top:34%; left:60%;  animation:cloudDrift2 58s linear infinite;}
-.cloud--3{width:640px; height:240px; top:66%; left:-25%; animation:cloudDrift1 64s linear infinite reverse; opacity:.85;}
-.cloud--4{width:420px; height:160px; top:80%; left:70%;  animation:cloudDrift2 40s linear infinite;}
-.cloud--5{width:760px; height:260px; top:94%; left:-10%; animation:cloudDrift1 74s linear infinite; opacity:.95;}
+.cloud--1{width:900px; height:500px; top:2%;  left:-25%; animation:cloudDrift1 130s linear infinite;}
+.cloud--2{width:760px; height:420px; top:28%; left:65%;  animation:cloudDrift2 160s linear infinite; opacity:.85;}
+.cloud--3{width:1000px; height:560px; top:52%; left:-35%; animation:cloudDrift1 175s linear infinite reverse;}
+.cloud--4{width:820px; height:460px; top:76%; left:60%;  animation:cloudDrift2 115s linear infinite; opacity:.9;}
 @keyframes cloudDrift1{from{transform:translateX(0);} to{transform:translateX(130vw);}}
 @keyframes cloudDrift2{from{transform:translateX(0);} to{transform:translateX(-130vw);}}
+
+/* Finale clouds: real cloud shapes (not a solid band) held just below the frame,
+   invisible, until the very last bit of scroll — then they rise up fast and fade
+   in, right before the pin releases into the next section. Quick, not a slow build. */
+.hero__clouds--finale{z-index:3;}
+.cloud--finale-1{width:1100px; height:610px; top:60%; left:-15%;}
+.cloud--finale-2{width:1300px; height:720px; top:70%; left:30%;}
+.cloud--finale-3{width:1000px; height:560px; top:80%; left:65%;}
+.cloud--finale-4{width:1200px; height:660px; top:55%; left:50%;}
 
 /* Thin ground-level haze right at the bottom edge only — kept small on purpose so it
    never reads as a big static band; the clouds layer is what does the visible rising. */
@@ -158,7 +176,7 @@ h1,h2,h3{font-family:var(--font-head); color:var(--ink); font-weight:700;}
 .hero__wordmark-main{
   font-family:var(--font-head); font-weight:900; letter-spacing:.01em;
   font-size:clamp(64px,14vw,220px); line-height:1;
-  background:url('https://images.unsplash.com/photo-1661595705868-4446becc7c8b?w=1200&q=70&auto=format&fit=crop') center 30%/cover;
+  background:url('images/hero-house.jpg') center 22%/cover;
   -webkit-background-clip:text; background-clip:text; color:transparent;
   -webkit-text-stroke:1.5px rgba(255,255,255,.9);
   filter:drop-shadow(0 2px 30px rgba(0,0,0,.3));
@@ -167,13 +185,6 @@ h1,h2,h3{font-family:var(--font-head); color:var(--ink); font-weight:700;}
   font-family:var(--font-head); font-weight:700; letter-spacing:.3em; text-transform:uppercase;
   font-size:clamp(12px,1.6vw,20px); color:rgba(255,255,255,.8); margin-top:6px;
   text-shadow:0 2px 12px rgba(0,0,0,.4);
-}
-
-/* Full whiteout that fades in near the very end of the hero, letting the clouds
-   visually "swallow" the scene before the next section's content appears underneath. */
-.hero__whiteout{
-  position:absolute; inset:0; z-index:5; pointer-events:none;
-  background:var(--bg-alt); opacity:0; will-change:opacity;
 }
 
 .hero__scrollcue{
@@ -211,6 +222,18 @@ h1,h2,h3{font-family:var(--font-head); color:var(--ink); font-weight:700;}
 .chevrons__text{font-size:clamp(20px,2.6vw,30px); font-weight:500; max-width:760px; margin:0 auto; line-height:1.4;}
 .chevrons__text .is-strong{color:var(--ink);}
 .chevrons__text .is-muted{color:var(--ink-soft);}
+
+/* Como funciona — rewired / steps */
+.rewired{padding:140px 0;}
+.rewired__grid{display:grid; grid-template-columns:.9fr 1.1fr; gap:60px; align-items:start;}
+.rewired__left h2{font-size:clamp(34px,4.6vw,56px); font-weight:700; margin:14px 0 32px; line-height:1.1;}
+.rewired__left h2 .is-muted{color:var(--ink-soft);}
+.steps{display:flex; flex-direction:column;}
+.steps li{display:flex; gap:24px; padding:28px 0; border-top:1px solid var(--line);}
+.steps li:last-child{border-bottom:1px solid var(--line);}
+.steps__num{font-family:var(--font-head); font-weight:700; font-size:14px; color:var(--brand); padding-top:3px; flex-shrink:0;}
+.steps li h3{font-size:19px; margin-bottom:6px;}
+.steps li p{color:var(--ink-soft); font-size:15px;}
 
 /* Stats */
 .stats{background:var(--bg-alt); padding:56px 0;}
@@ -320,6 +343,9 @@ h1,h2,h3{font-family:var(--font-head); color:var(--ink); font-weight:700;}
   .bigtext h2{text-align:left;}
   .darkcta__grid{grid-template-columns:1fr;}
   .footer__top{grid-template-columns:1fr 1fr; gap:28px;}
+  .rewired__grid{grid-template-columns:1fr; gap:40px;}
+  .chevrons__row{flex-wrap:wrap; justify-content:center;}
+  .chevron{margin-left:-30px; width:150px; height:190px;}
 }
 
 /* Scroll-triggered reveals — applied across every section, not just the hero */
