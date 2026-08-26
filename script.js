@@ -37,17 +37,21 @@ function updateHero(){
 
   heroPhoto.style.transform = `translateY(${progress * -0.82 * vh}px) scale(${1 + progress * 0.29})`;
 
-  // Clouds rise slowly the whole way through.
-  heroClouds.style.transform = `translateY(${progress * -0.35 * vh}px)`;
-
-  // Finale clouds: SWEEP up through the whole frame in the last bit of scroll — enter
-  // from below the viewport, fully cover the screen at the sweep's midpoint, exit off
-  // the top right as the pin releases. The upward motion itself has to be visible (not
-  // just a fade-in-and-settle), so this covers a wide vertical distance fast.
+  // Finale clouds: rise up from below and take over the whole frame, then HOLD full
+  // coverage — they don't sweep back out before the pin releases (an early exit was
+  // leaving a bare strip of the house exposed right at the transition). They arrive
+  // and stay, so the pin's own release carries them away with the rest of the hero.
   const finaleT = clamp01((progress - 0.85) / 0.15);
-  const finaleOp = clamp01(finaleT / 0.2);
+
+  // Ambient (horizontal-drift) clouds rise slowly the whole way through, but they
+  // need to be OUT of the picture once the finale sweep takes over — otherwise their
+  // thin drifting shapes show as stray strips of house photo poking through gaps in
+  // the finale coverage. Fade them out over the same window the finale fades in.
+  heroClouds.style.transform = `translateY(${progress * -0.35 * vh}px)`;
+  heroClouds.style.opacity = String(1 - finaleT);
+  const finaleOp = clamp01(finaleT / 0.15);
   heroCloudsFinale.style.opacity = String(finaleOp);
-  heroCloudsFinale.style.transform = `translateY(${lerp(65, -60, finaleT)}%) scale(${1 + finaleT * 0.25})`;
+  heroCloudsFinale.style.transform = `translateY(${lerp(55, 0, finaleT)}%) scale(${1 + finaleT * 0.12})`;
 }
 window.addEventListener('scroll', updateHero, { passive: true });
 window.addEventListener('resize', updateHero);

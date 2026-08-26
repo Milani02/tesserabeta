@@ -144,17 +144,41 @@ h1,h2,h3{font-family:var(--font-head); color:var(--ink); font-weight:700;}
 @keyframes cloudDrift1{from{transform:translateX(0);} to{transform:translateX(130vw);}}
 @keyframes cloudDrift2{from{transform:translateX(0);} to{transform:translateX(-130vw);}}
 
-/* Finale clouds: real cloud shapes (not a solid band) that sweep UP THROUGH the
-   whole frame in the last bit of scroll — enter from below, fully cover the screen
-   at the midpoint, exit off the top — right as the pin releases into the next
-   section. The sweep (not just a fade-in) is what needs to be visible, so these are
-   sized/staggered to overlap and cover the full height at the sweep's midpoint. */
+/* Finale clouds: rise up and take over the ENTIRE frame in the last bit of scroll,
+   then STAY covering it — they do not sweep back out before the pin releases. That
+   matters: if they exit early, there's a beat where the pin is still active but the
+   clouds are gone, exposing a bare strip of the house photo right at the transition
+   point. Instead they arrive at full coverage and hold, so the pin's natural release
+   carries the whole hero (photo + clouds) away as one unit, cutting cleanly to the
+   next section with nothing exposed underneath.
+
+   The cloud-1/cloud-2 PHOTOS are mostly black background around one puffy shape
+   (by design, for mix-blend-mode:screen elsewhere) — stacking a handful of them can
+   never tile into gapless full coverage, there just isn't enough opaque pixel area.
+   So coverage here is split into two layers: .hero__clouds-base is an opaque,
+   softly-mottled off-white layer that GUARANTEES zero gaps (it's not a photo, so
+   there's nothing for the house to show through), oversized 15% past every edge so
+   even its own soft mask falloff lands outside the viewport. The 4 cloud--finale-N
+   photo blobs sit on top of it purely for recognizable puffy cloud texture/character
+   — they no longer have to achieve coverage on their own. */
 .hero__clouds--finale{z-index:3; transition:transform .5s cubic-bezier(.16,.8,.3,1), opacity .5s ease-out;}
-.cloud--finale-1{width:1300px; height:820px; top:-15%; left:-20%;}
-.cloud--finale-2{width:1450px; height:900px; top:15%;  left:35%;}
-.cloud--finale-3{width:1250px; height:800px; top:45%;  left:-25%;}
-.cloud--finale-4{width:1400px; height:880px; top:20%;  left:55%;}
-.cloud--finale-5{width:1300px; height:820px; top:60%;  left:15%;}
+.hero__clouds-base{
+  position:absolute; inset:-15%;
+  background:
+    radial-gradient(ellipse 45% 40% at 22% 28%, rgba(255,255,255,.95), transparent 62%),
+    radial-gradient(ellipse 50% 45% at 78% 32%, rgba(255,255,255,.9), transparent 62%),
+    radial-gradient(ellipse 55% 50% at 38% 78%, rgba(255,255,255,.95), transparent 58%),
+    radial-gradient(ellipse 50% 45% at 82% 82%, rgba(255,255,255,.9), transparent 58%),
+    #eef2f0;
+}
+.hero__clouds--finale .cloud{
+  -webkit-mask-image:radial-gradient(ellipse 60% 60% at center, #000 40%, transparent 75%);
+  mask-image:radial-gradient(ellipse 60% 60% at center, #000 40%, transparent 75%);
+}
+.cloud--finale-1{width:1300px; height:720px; top:-10%; left:-15%;}
+.cloud--finale-2{width:1450px; height:800px; top:20%;  left:45%;}
+.cloud--finale-3{width:1250px; height:700px; top:40%;  left:-10%;}
+.cloud--finale-4{width:1400px; height:780px; top:55%;  left:40%;}
 
 /* Thin ground-level haze right at the bottom edge only — kept small on purpose so it
    never reads as a big static band; the clouds layer is what does the visible rising. */
