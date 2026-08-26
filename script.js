@@ -40,12 +40,14 @@ function updateHero(){
   // Clouds rise slowly the whole way through.
   heroClouds.style.transform = `translateY(${progress * -0.35 * vh}px)`;
 
-  // Finale clouds: held just below the frame and invisible almost the whole way,
-  // then rise up FAST in a short burst right at the very end — quick, not a slow
-  // build — so the next section is already showing by the time the pin releases.
-  const finaleIn = clamp01((progress - 0.90) / 0.10);
-  heroCloudsFinale.style.opacity = String(finaleIn);
-  heroCloudsFinale.style.transform = `translateY(${(1 - finaleIn) * 45}%) scale(${1 + finaleIn * 0.45})`;
+  // Finale clouds: SWEEP up through the whole frame in the last bit of scroll — enter
+  // from below the viewport, fully cover the screen at the sweep's midpoint, exit off
+  // the top right as the pin releases. The upward motion itself has to be visible (not
+  // just a fade-in-and-settle), so this covers a wide vertical distance fast.
+  const finaleT = clamp01((progress - 0.85) / 0.15);
+  const finaleOp = clamp01(finaleT / 0.2);
+  heroCloudsFinale.style.opacity = String(finaleOp);
+  heroCloudsFinale.style.transform = `translateY(${lerp(65, -60, finaleT)}%) scale(${1 + finaleT * 0.25})`;
 }
 window.addEventListener('scroll', updateHero, { passive: true });
 window.addEventListener('resize', updateHero);
