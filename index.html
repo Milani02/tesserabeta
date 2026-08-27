@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Téssera Negócios Imobiliários</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;700;900&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=41">
+<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;700;900&family=Open+Sans:wght@400;600&family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=71">
 </head>
 <body>
 
@@ -72,8 +72,8 @@
 
       <div class="container hero__content" id="heroContent">
         <h1 class="hero__title">O imóvel certo,<br>no lugar certo.</h1>
-        <p class="hero__subtitle">Residencial, comercial e rural em Londrina e região, com atendimento direto da nossa equipe.</p>
-        <a href="#comprar" class="btn btn--solid hero__cta">Ver imóveis <span>&rarr;</span></a>
+        <p class="hero__subtitle">Cansado de procurar sozinho? Residencial, comercial ou rural: você fala direto com quem realmente conhece Londrina e região.</p>
+        <a href="#comprar" class="btn btn--solid hero__cta">Quero ver os imóveis <span>&rarr;</span></a>
       </div>
 
       <div class="hero__wordmark" id="heroWordmark">
@@ -132,8 +132,8 @@
     <div class="container whyus__grid">
       <span class="eyebrow">Por que a Téssera</span>
       <p class="whyus__heading reveal-text">
-        <span class="is-strong">Tessera é a peça que completa o mosaico.</span>
-        <span class="is-muted">A gente não entrega só um imóvel — ajuda a encaixar a peça certa no lugar certo da sua vida, com um corretor de verdade do seu lado, não um sistema automático.</span>
+        <span class="is-strong">Téssera é a peça que completa o mosaico.</span>
+        <span class="is-muted">A gente não entrega só um imóvel. A gente ajuda a encaixar a peça certa no lugar certo da sua vida, com um corretor de verdade do seu lado, não um sistema automático te enrolando no chat.</span>
       </p>
     </div>
     <div class="whyus__media fade-up">
@@ -156,181 +156,421 @@
     </div>
     <p class="chevrons__text reveal-text">
       <span class="is-strong">É sobre identidade. Recomeço. Pertencimento.</span>
-      <span class="is-muted">Cada imóvel que negociamos carrega uma peça da vida de alguém — nosso trabalho é ajudar essa peça a encontrar exatamente onde encaixa.</span>
+      <span class="is-muted">Cada imóvel que negociamos carrega uma peça da vida de alguém. Nosso trabalho é ajudar essa peça a encontrar exatamente onde encaixa.</span>
     </p>
   </section>
 
-  <!-- COMO FUNCIONA (rewired / steps) -->
-  <section class="rewired">
+  <!-- COMO FUNCIONA (rewired / steps) — sticky scroll-progress: left column pins
+       while the right column's step cards scroll past underneath it. -->
+  <section class="rewired" id="rewired" data-phase="0">
     <div class="container rewired__grid">
-      <div class="rewired__left fade-up">
-        <span class="eyebrow">Como funciona</span>
-        <h2>Imóveis, <span class="is-muted">sem enrolação.</span></h2>
-        <a href="#comprar" class="btn btn--solid">Começar agora <span>&rarr;</span></a>
+      <div class="rewired__left">
+        <div class="rewired__left-inner fade-up">
+          <span class="eyebrow">Como funciona</span>
+          <h2>Imóveis, <span class="is-muted">sem enrolação.</span></h2>
+          <a href="#comprar" class="btn btn--solid">Quero começar agora <span>&rarr;</span></a>
+
+          <div class="rewired__progress">
+            <div class="rewired__progress-track">
+              <div class="rewired__progress-fill" id="rewiredProgressFill"></div>
+            </div>
+            <div class="rewired__progress-counter">
+              <span class="rewired__progress-num" id="rewiredCounterNum">01</span>
+              <span class="rewired__progress-total">/ 03</span>
+            </div>
+          </div>
+        </div>
       </div>
-      <ol class="steps fade-up-group" id="steps">
-        <li>
-          <span class="steps__num">01</span>
-          <div>
-            <h3>Fale com um corretor de verdade</h3>
-            <p>Conectamos você com quem realmente conhece a região — sem robô de triagem.</p>
-          </div>
-        </li>
-        <li>
-          <span class="steps__num">02</span>
-          <div>
-            <h3>Veja imóveis selecionados</h3>
-            <p>Curadoria feita pra encaixar no que você precisa, não numa lista genérica.</p>
-          </div>
-        </li>
-        <li>
-          <span class="steps__num">03</span>
-          <div>
-            <h3>Feche negócio com segurança</h3>
-            <p>Acompanhamento em cada etapa, da proposta até a assinatura.</p>
-          </div>
-        </li>
-      </ol>
+      <!-- Tall scroll track (300vh — one "page" of scrub per card) provides the
+           runway; .steps itself is the sticky viewport-height window pinned
+           inside it, and each card is positioned/rotated/scaled every frame in
+           JS as a right-to-left, depth-layered carousel slide. -->
+      <div class="steps-track" id="stepsTrack">
+        <ol class="steps" id="steps">
+          <li>
+            <div class="steps__media">
+              <div class="steps__media-photo" style="background-image:url('images/step-broker.jpg')"></div>
+              <span class="steps__badge">01</span>
+            </div>
+            <div class="steps__body">
+              <h3>Fale com um corretor de verdade</h3>
+              <p>Você fala direto com quem realmente conhece a região. Nada de robô de triagem no meio do caminho.</p>
+            </div>
+          </li>
+          <li>
+            <div class="steps__media">
+              <div class="steps__media-photo" style="background-image:url('images/step-listings.jpg')"></div>
+              <span class="steps__badge">02</span>
+            </div>
+            <div class="steps__body">
+              <h3>Veja imóveis selecionados</h3>
+              <p>Curadoria feita pra encaixar no que você precisa, não numa lista genérica.</p>
+            </div>
+          </li>
+          <li>
+            <div class="steps__media">
+              <div class="steps__media-photo" style="background-image:url('images/step-close.jpg')"></div>
+              <span class="steps__badge">03</span>
+            </div>
+            <div class="steps__body">
+              <h3>Feche negócio com segurança</h3>
+              <p>Você não fica sozinho em nenhuma etapa: acompanhamento real, da proposta até a assinatura.</p>
+            </div>
+          </li>
+        </ol>
+      </div>
     </div>
   </section>
 
-  <!-- STATS -->
+  <!-- STATS — minimalist bento grid: asymmetric block sizes, each with its own
+       micro-icon, a counter-up number (see animateStatCount in script.js), and
+       a cursor-tracked glow ring on hover. -->
   <section class="stats">
-    <div class="container stats__grid fade-up-group">
-      <div class="stats__item"><span class="stats__num">82</span><span class="stats__label">Apartamentos à venda</span></div>
-      <div class="stats__item"><span class="stats__num">154</span><span class="stats__label">Imóveis para alugar</span></div>
-      <div class="stats__item"><span class="stats__num">27+</span><span class="stats__label">Tipos de imóvel</span></div>
+    <div class="container stats__grid">
+      <div class="stats__item stats__item--feature">
+        <div class="stats__icon" aria-hidden="true">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 22 24 9l16 13"/>
+            <path d="M12 20v18h10V28h4v10h10V20"/>
+          </svg>
+        </div>
+        <span class="stats__num" data-count="154">0</span>
+        <span class="stats__label">Imóveis para alugar</span>
+      </div>
+      <div class="stats__item">
+        <div class="stats__icon" aria-hidden="true">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="6" width="18" height="36" rx="2"/>
+            <path d="M14.5 14h2M14.5 21h2M14.5 28h2M20.5 14h2M20.5 21h2M20.5 28h2"/>
+            <path d="M27 42V21l10 7v14"/>
+          </svg>
+        </div>
+        <span class="stats__num" data-count="82">0</span>
+        <span class="stats__label">Apartamentos à venda</span>
+      </div>
+      <div class="stats__item">
+        <div class="stats__icon" aria-hidden="true">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="18" cy="18" r="10"/>
+            <rect x="22" y="22" width="18" height="18" rx="3"/>
+          </svg>
+        </div>
+        <span class="stats__num" data-count="27" data-suffix="+">0</span>
+        <span class="stats__label">Tipos de imóvel</span>
+      </div>
     </div>
   </section>
 
-  <!-- SEGMENTOS -->
+  <!-- SEGMENTOS — large-scale typographic list. Hovering a name (desktop only)
+       floats a cursor-following photo preview; clicking opens a single-open
+       accordion with quick metrics and a few representative listings. -->
   <section class="segments">
     <div class="container">
       <span class="eyebrow">O que fazemos</span>
       <h2 class="section-title reveal-text">Um único lugar <span class="is-muted">para cada tipo de negócio imobiliário.</span></h2>
     </div>
-    <div class="container segments__grid fade-up-group">
-      <div class="segments__card" style="background-image:url('https://images.unsplash.com/photo-1624204386084-dd8c05e32226?w=900&q=75&auto=format&fit=crop')">
-        <div class="segments__card-inner">
-          <h3>Residencial</h3>
-          <p>Apartamento, casa, sobrado, kitnet e flat — para comprar ou alugar.</p>
-          <a href="#comprar" class="segments__link">Ver imóveis residenciais &rarr;</a>
-        </div>
-      </div>
-      <div class="segments__card" style="background-image:url('https://images.unsplash.com/photo-1694183004462-2f7126c54652?w=900&q=75&auto=format&fit=crop')">
-        <div class="segments__card-inner">
-          <h3>Comercial &amp; Industrial</h3>
-          <p>Sala, loja, salão, barracão, prédio e andar corporativo.</p>
-          <a href="#comprar" class="segments__link">Ver imóveis comerciais &rarr;</a>
-        </div>
-      </div>
-      <div class="segments__card" style="background-image:url('https://images.unsplash.com/photo-1545350089-47b3d117a92c?w=900&q=75&auto=format&fit=crop')">
-        <div class="segments__card-inner">
-          <h3>Rural</h3>
-          <p>Área, chácara, fazenda, sítio e terreno em toda a região.</p>
-          <a href="#rural" class="segments__link">Ver imóveis rurais &rarr;</a>
-        </div>
+
+    <div class="container segments__wrap">
+      <ul class="segments__list fade-up-group" id="segmentsList">
+        <li class="segments__row" data-image="images/seg-residencial.jpg">
+          <button class="segments__toggle" aria-expanded="false" aria-controls="segPanel-residencial">
+            <span class="segments__name">Residencial</span>
+            <span class="segments__meta">Apartamento, casa, sobrado, kitnet e flat</span>
+            <span class="segments__plus" aria-hidden="true"></span>
+          </button>
+          <div class="segments__panel" id="segPanel-residencial">
+            <div class="segments__panel-inner">
+              <div class="segments__panel-content">
+                <div class="segments__panel-photo" style="background-image:url('images/seg-residencial.jpg')"></div>
+                <div class="segments__panel-info">
+                  <div class="segments__stats">
+                    <div class="segments__stat"><strong>58</strong><span>imóveis disponíveis</span></div>
+                    <div class="segments__stat"><strong>R$ 320 mil</strong><span>a partir de</span></div>
+                  </div>
+                  <ul class="segments__sample">
+                    <li>Apartamento · Gleba Palhano</li>
+                    <li>Casa · Santa Rosa</li>
+                    <li>Kitnet · Centro</li>
+                  </ul>
+                  <a href="#comprar" class="btn btn--outline-dark">Ver imóveis residenciais <span>&rarr;</span></a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="segments__row" data-image="images/seg-comercial.jpg">
+          <button class="segments__toggle" aria-expanded="false" aria-controls="segPanel-comercial">
+            <span class="segments__name">Comercial &amp; Industrial</span>
+            <span class="segments__meta">Sala, loja, salão, barracão, prédio e andar corporativo</span>
+            <span class="segments__plus" aria-hidden="true"></span>
+          </button>
+          <div class="segments__panel" id="segPanel-comercial">
+            <div class="segments__panel-inner">
+              <div class="segments__panel-content">
+                <div class="segments__panel-photo" style="background-image:url('images/seg-comercial.jpg')"></div>
+                <div class="segments__panel-info">
+                  <div class="segments__stats">
+                    <div class="segments__stat"><strong>19</strong><span>imóveis disponíveis</span></div>
+                    <div class="segments__stat"><strong>R$ 480 mil</strong><span>a partir de</span></div>
+                  </div>
+                  <ul class="segments__sample">
+                    <li>Sala comercial · Centro</li>
+                    <li>Galpão · Distrito Industrial</li>
+                    <li>Loja · Calçadão</li>
+                  </ul>
+                  <a href="#comprar" class="btn btn--outline-dark">Ver imóveis comerciais <span>&rarr;</span></a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="segments__row" data-image="images/seg-rural.jpg">
+          <button class="segments__toggle" aria-expanded="false" aria-controls="segPanel-rural">
+            <span class="segments__name">Rural</span>
+            <span class="segments__meta">Área, chácara, fazenda, sítio e terreno em toda a região</span>
+            <span class="segments__plus" aria-hidden="true"></span>
+          </button>
+          <div class="segments__panel" id="segPanel-rural">
+            <div class="segments__panel-inner">
+              <div class="segments__panel-content">
+                <div class="segments__panel-photo" style="background-image:url('images/seg-rural.jpg')"></div>
+                <div class="segments__panel-info">
+                  <div class="segments__stats">
+                    <div class="segments__stat"><strong>12</strong><span>imóveis disponíveis</span></div>
+                    <div class="segments__stat"><strong>R$ 850 mil</strong><span>a partir de</span></div>
+                  </div>
+                  <ul class="segments__sample">
+                    <li>Chácara · Warta</li>
+                    <li>Sítio · Cambé</li>
+                    <li>Fazenda · Ibiporã</li>
+                  </ul>
+                  <a href="#rural" class="btn btn--outline-dark">Ver imóveis rurais <span>&rarr;</span></a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </li>
+      </ul>
+
+      <div class="segments__preview" id="segmentsPreview" aria-hidden="true">
+        <div class="segments__preview-img" id="segmentsPreviewImg"></div>
       </div>
     </div>
   </section>
 
-  <!-- LISTINGS -->
+  <!-- LISTINGS — art-gallery-style horizontal drag canvas. Native wheel/
+       trackpad/touch scroll works as-is (.listings__scroller is a plain
+       overflow-x:auto flex row); JS layers click-and-drag on top for mouse,
+       plus a seamless infinite wrap (three duplicated sets — see script.js). -->
   <section class="listings">
     <div class="container listings__header">
       <div>
         <span class="eyebrow">Destaques</span>
         <h2 class="section-title reveal-text">Alguns imóveis <span class="is-muted">do nosso catálogo</span></h2>
       </div>
-      <a href="#comprar" class="btn btn--outline-dark">Ver todos os imóveis &rarr;</a>
+      <div class="listings__header-right">
+        <span class="listings__hint">Arraste ou role para navegar &harr;</span>
+        <a href="#comprar" class="btn btn--outline-dark">Ver todos os imóveis &rarr;</a>
+      </div>
     </div>
-    <div class="container listings__grid fade-up-group">
-      <article class="listing-card">
-        <div class="listing-card__img" style="background-image:url('https://images.unsplash.com/photo-1570658379397-89d15db1b0de?w=700&q=75&auto=format&fit=crop')">
-          <span class="listing-card__tag">Venda</span>
-        </div>
-        <div class="listing-card__body">
-          <span class="listing-card__code">AP0140-TFZA</span>
-          <h3>Santa Rosa, Londrina</h3>
-          <p class="listing-card__specs">3 quartos · 323 m²</p>
-          <p class="listing-card__price">R$ 6.000.000</p>
-        </div>
-      </article>
-      <article class="listing-card">
-        <div class="listing-card__img" style="background-image:url('https://images.unsplash.com/photo-1601783210890-d921f8d008b3?w=700&q=75&auto=format&fit=crop')">
-          <span class="listing-card__tag">Venda</span>
-        </div>
-        <div class="listing-card__body">
-          <span class="listing-card__code">AP0118-TFZA</span>
-          <h3>Gleba Palhano, Londrina</h3>
-          <p class="listing-card__specs">6 quartos · 346 m²</p>
-          <p class="listing-card__price">R$ 5.800.000</p>
-        </div>
-      </article>
-      <article class="listing-card">
-        <div class="listing-card__img" style="background-image:url('https://images.unsplash.com/photo-1595367864470-cedf8e27e988?w=700&q=75&auto=format&fit=crop')">
-          <span class="listing-card__tag">Venda</span>
-        </div>
-        <div class="listing-card__body">
-          <span class="listing-card__code">AP0112-TFZA</span>
-          <h3>Gleba Palhano, Londrina</h3>
-          <p class="listing-card__specs">2 quartos · 142 m²</p>
-          <p class="listing-card__price">R$ 1.800.000</p>
-        </div>
-      </article>
+    <div class="listings__track">
+      <div class="listings__scroller fade-up-group" id="listingsScroller">
+        <article class="listing-card">
+          <div class="listing-card__frame">
+            <div class="listing-card__img" style="background-image:url('https://images.unsplash.com/photo-1570658379397-89d15db1b0de?w=700&q=75&auto=format&fit=crop')"></div>
+            <div class="listing-card__reveal">
+              <svg class="listing-card__plan" viewBox="0 0 120 90" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="1.5" aria-hidden="true">
+                <rect x="4" y="4" width="112" height="82"/>
+                <path d="M60 4v46M4 50h112M88 50v36"/>
+              </svg>
+              <div class="listing-card__reveal-specs">
+                <span>3 suítes</span><span>323 m²</span>
+              </div>
+            </div>
+            <span class="listing-card__tag">Venda</span>
+          </div>
+          <div class="listing-card__body">
+            <div>
+              <span class="listing-card__code">AP0140-TFZA</span>
+              <h3>Santa Rosa, Londrina</h3>
+              <p class="listing-card__specs">3 quartos · 323 m²</p>
+            </div>
+            <p class="listing-card__price">R$ 6.000.000</p>
+          </div>
+        </article>
+        <article class="listing-card">
+          <div class="listing-card__frame">
+            <div class="listing-card__img" style="background-image:url('https://images.unsplash.com/photo-1601783210890-d921f8d008b3?w=700&q=75&auto=format&fit=crop')"></div>
+            <div class="listing-card__reveal">
+              <svg class="listing-card__plan" viewBox="0 0 120 90" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="1.5" aria-hidden="true">
+                <rect x="4" y="4" width="112" height="82"/>
+                <path d="M60 4v46M4 50h112M88 50v36"/>
+              </svg>
+              <div class="listing-card__reveal-specs">
+                <span>4 suítes</span><span>346 m²</span>
+              </div>
+            </div>
+            <span class="listing-card__tag">Venda</span>
+          </div>
+          <div class="listing-card__body">
+            <div>
+              <span class="listing-card__code">AP0118-TFZA</span>
+              <h3>Gleba Palhano, Londrina</h3>
+              <p class="listing-card__specs">6 quartos · 346 m²</p>
+            </div>
+            <p class="listing-card__price">R$ 5.800.000</p>
+          </div>
+        </article>
+        <article class="listing-card">
+          <div class="listing-card__frame">
+            <div class="listing-card__img" style="background-image:url('https://images.unsplash.com/photo-1595367864470-cedf8e27e988?w=700&q=75&auto=format&fit=crop')"></div>
+            <div class="listing-card__reveal">
+              <svg class="listing-card__plan" viewBox="0 0 120 90" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="1.5" aria-hidden="true">
+                <rect x="4" y="4" width="112" height="82"/>
+                <path d="M60 4v46M4 50h112M88 50v36"/>
+              </svg>
+              <div class="listing-card__reveal-specs">
+                <span>1 suíte</span><span>142 m²</span>
+              </div>
+            </div>
+            <span class="listing-card__tag">Venda</span>
+          </div>
+          <div class="listing-card__body">
+            <div>
+              <span class="listing-card__code">AP0112-TFZA</span>
+              <h3>Gleba Palhano, Londrina</h3>
+              <p class="listing-card__specs">2 quartos · 142 m²</p>
+            </div>
+            <p class="listing-card__price">R$ 1.800.000</p>
+          </div>
+        </article>
+        <article class="listing-card">
+          <div class="listing-card__frame">
+            <div class="listing-card__img" style="background-image:url('images/step-listings.jpg')"></div>
+            <div class="listing-card__reveal">
+              <svg class="listing-card__plan" viewBox="0 0 120 90" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="1.5" aria-hidden="true">
+                <rect x="4" y="4" width="112" height="82"/>
+                <path d="M60 4v46M4 50h112M88 50v36"/>
+              </svg>
+              <div class="listing-card__reveal-specs">
+                <span>2 suítes</span><span>210 m²</span>
+              </div>
+            </div>
+            <span class="listing-card__tag">Venda</span>
+          </div>
+          <div class="listing-card__body">
+            <div>
+              <span class="listing-card__code">AP0155-TFZA</span>
+              <h3>Igapó, Londrina</h3>
+              <p class="listing-card__specs">3 quartos · 210 m²</p>
+            </div>
+            <p class="listing-card__price">R$ 4.200.000</p>
+          </div>
+        </article>
+        <article class="listing-card">
+          <div class="listing-card__frame">
+            <div class="listing-card__img" style="background-image:url('images/seg-residencial.jpg')"></div>
+            <div class="listing-card__reveal">
+              <svg class="listing-card__plan" viewBox="0 0 120 90" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="1.5" aria-hidden="true">
+                <rect x="4" y="4" width="112" height="82"/>
+                <path d="M55 4v82M4 42h51"/>
+              </svg>
+              <div class="listing-card__reveal-specs">
+                <span>1 suíte</span><span>98 m²</span>
+              </div>
+            </div>
+            <span class="listing-card__tag listing-card__tag--rent">Aluguel</span>
+          </div>
+          <div class="listing-card__body">
+            <div>
+              <span class="listing-card__code">AP0093-TFZA</span>
+              <h3>Centro, Londrina</h3>
+              <p class="listing-card__specs">2 quartos · 98 m²</p>
+            </div>
+            <p class="listing-card__price">R$ 3.200/mês</p>
+          </div>
+        </article>
+      </div>
     </div>
   </section>
 
-  <!-- COMPRAR / ALUGAR -->
-  <section class="bigtext">
-    <div class="container bigtext__row fade-up">
-      <div class="bigtext__info">
-        <p>Encontre o imóvel ideal com apoio direto da nossa equipe, do primeiro contato à assinatura.</p>
+  <!-- COMPRAR / ALUGAR — kinetic typography + toggle switch. A ghost-stroke
+       marquee scrolls continuously behind a static giant sentence; "comprar"
+       and "alugar" inside it are real toggle buttons (see script.js), the
+       rest of the sentence is inert display type at the same giant scale. -->
+  <section class="bigtext" id="bigtext">
+    <div class="bigtext__marquee" aria-hidden="true">
+      <div class="bigtext__marquee-track">
+        <span>Imóveis · Londrina · Região · Téssera · </span>
+        <span>Imóveis · Londrina · Região · Téssera · </span>
       </div>
-      <h2>Comprar</h2>
     </div>
-    <div class="container bigtext__row fade-up">
-      <div class="bigtext__info">
-        <p>Imóveis residenciais e comerciais disponíveis para locação em toda a região.</p>
+
+    <div class="container bigtext__stage fade-up">
+      <p class="bigtext__sentence">
+        Eu quero
+        <button type="button" class="bigtext__toggle is-active" data-mode="comprar" aria-pressed="true">comprar</button>
+        ou
+        <button type="button" class="bigtext__toggle" data-mode="alugar" aria-pressed="false">alugar</button>
+      </p>
+
+      <div class="bigtext__panel">
+        <div class="bigtext__desc-stack">
+          <p class="bigtext__desc is-active" data-mode="comprar">Encontre o imóvel ideal com apoio direto da nossa equipe, do primeiro contato à assinatura.</p>
+          <p class="bigtext__desc" data-mode="alugar">Imóveis residenciais e comerciais disponíveis para locação em toda a região.</p>
+        </div>
+        <a href="#comprar" class="btn btn--light" id="bigtextCta">
+          <span id="bigtextCtaLabel">Ver imóveis à venda</span> <span>&rarr;</span>
+        </a>
       </div>
-      <h2>Alugar</h2>
     </div>
   </section>
 
-  <!-- REGIÕES -->
+  <!-- REGIÕES — real, embedded map (no API key needed for this embed form)
+       centered on the actual office address, with the address itself as a
+       floating card over it. Replaced the earlier stylized node-network map
+       with this on request, since a real office location calls for a real
+       map rather than a decorative abstraction. -->
   <section class="regions">
     <div class="container regions__grid">
       <div>
         <span class="eyebrow">Onde atuamos</span>
         <h2 class="section-title reveal-text">Londrina <span class="is-muted">e região.</span></h2>
-        <div class="regions__chips fade-up-group">
-          <span class="chip chip--solid">Londrina</span>
-          <span class="chip">Ibiporã</span>
-          <span class="chip">Cambé</span>
-          <span class="chip">Jataizinho</span>
-          <span class="chip">Cascavel</span>
-          <span class="chip">Umuarama</span>
-        </div>
-        <span class="eyebrow" style="margin-top:40px;">Bairros em destaque</span>
-        <div class="regions__chips fade-up-group">
-          <span class="chip">Centro · Londrina</span>
-          <span class="chip">Centro · Ibiporã</span>
-          <span class="chip">Gleba Palhano</span>
-          <span class="chip">Gleba Fazenda Palhano</span>
-          <span class="chip">Nova Prochet</span>
-          <span class="chip">Zona Rural</span>
+        <p class="regions__lead">Nosso escritório fica no Centro de Londrina, mas nossa área de atuação é bem maior que isso. Passa aqui pra tomar um café ou manda mensagem agora mesmo.</p>
+      </div>
+
+      <div class="regions__map-wrap fade-in-side">
+        <iframe
+          class="regions__map-embed"
+          src="https://www.google.com/maps?q=Rua+Pernambuco,+390+-+Centro,+Londrina+-+PR&output=embed"
+          title="Mapa com a localização do escritório da Téssera Negócios Imobiliários, Centro de Londrina"
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"></iframe>
+        <div class="regions__map-address">
+          <span class="regions__map-address-label">Nosso escritório</span>
+          <p>Rua Pernambuco, 390<br>Ed. Nacional, Sala 404 — Centro<br>Londrina/PR</p>
+          <a href="https://www.google.com/maps/search/?api=1&query=Rua+Pernambuco,+390+-+Centro,+Londrina+-+PR" target="_blank" rel="noopener" class="regions__map-link">Abrir no Google Maps <span>&rarr;</span></a>
         </div>
       </div>
-      <div class="regions__photo fade-in-side" style="background-image:url('images/regions-londrina.jpg')"></div>
     </div>
   </section>
 
-  <!-- CTA ESCURO -->
+  <!-- CTA ESCURO — cursor spotlight. Everything reactive here is contained
+       inside .darkcta itself (a dot-grid mask + color glow following the
+       cursor, both scoped to this section's own box — see script.js), plus
+       the magnetic pull on the primary button. No effect reaches outside the
+       section's own edges. -->
   <section class="darkcta">
-    <div class="container darkcta__grid">
-      <div>
-        <h2 class="reveal-text">Fale direto com um corretor <span class="is-muted">da Téssera.</span></h2>
-        <p>Atendimento humano, sem robô de triagem.</p>
-      </div>
+    <div class="darkcta__grid-bg" aria-hidden="true"></div>
+    <div class="darkcta__glow" aria-hidden="true"></div>
+    <div class="container darkcta__stage">
+      <span class="eyebrow eyebrow--light">Fale com a gente</span>
+      <h2 class="reveal-text">Fale direto com um corretor <span class="is-muted">da Téssera.</span></h2>
+      <p>Sem formulário genérico, sem fila de espera. Você manda mensagem e fala com gente de verdade.</p>
+      <a href="https://wa.me/+5543988370005" target="_blank" rel="noopener" class="btn btn--light darkcta__magnetic" id="darkctaMagnetic">
+        Falar com um consultor Téssera <span>&rarr;</span>
+      </a>
+
       <div class="darkcta__info fade-up-group">
         <div>
           <span class="eyebrow eyebrow--light">Telefone / WhatsApp</span>
@@ -348,33 +588,54 @@
     </div>
   </section>
 
-  <!-- SERVIÇOS ÚTEIS -->
-  <section class="services">
-    <div class="container">
-      <span class="eyebrow">Fale Conosco</span>
-      <h2 class="section-title reveal-text">Documentos <span class="is-muted">e serviços úteis</span></h2>
-      <div class="services__grid fade-up-group">
-        <a href="#" class="services__item">Certidão negativa de IPTU <small>Prefeitura de Londrina</small></a>
-        <a href="#" class="services__item">Certidão de registro de imóveis</a>
-        <a href="#" class="services__item">2ª via de conta <small>Copel</small></a>
-        <a href="#" class="services__item">2ª via de conta <small>Sanepar</small></a>
-        <a href="#" class="services__item">Consulta de zoneamento <small>IPPUL</small></a>
+  <!-- FINAL CTA — screen-fill text reveal. .finalcta--fill is a modifier on
+       the shared .finalcta class so institucional.html's plain photo-CTA
+       version of this section keeps working untouched — this page gets an
+       entirely different treatment under that modifier instead of forking
+       the base class. Text starts hollow (stroke only); a solid brand-color
+       copy is clipped on top and the clip sweeps left-to-right as the pinned
+       section is scrolled through — see updateFinalctaFill in script.js. -->
+  <section class="finalcta finalcta--fill" id="finalcta">
+    <div class="finalcta__pin">
+      <div class="finalcta__text-wrap">
+        <h2 class="finalcta__text">
+          <span class="finalcta__line">Vamos</span>
+          <span class="finalcta__line">encontrar</span>
+          <span class="finalcta__line">seu lugar.</span>
+        </h2>
+        <div class="finalcta__text finalcta__text--fill" aria-hidden="true">
+          <span class="finalcta__line">Vamos</span>
+          <span class="finalcta__line">encontrar</span>
+          <span class="finalcta__line">seu lugar.</span>
+        </div>
       </div>
-    </div>
-  </section>
-
-  <!-- FINAL CTA -->
-  <section class="finalcta">
-    <div class="finalcta__bg" style="background-image:url('https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=1800&q=75&auto=format&fit=crop')"></div>
-    <div class="container finalcta__content reveal-text">
-      <h2>Encontre você. <span class="is-muted">A gente ajuda.</span></h2>
-      <a href="#contato" class="btn btn--solid finalcta__btn">Vamos começar <span>&rarr;</span></a>
+      <a href="#contato" class="btn btn--solid finalcta__btn" id="finalctaBtn">Vamos começar <span>&rarr;</span></a>
     </div>
   </section>
 
 </main>
 
 <footer class="footer" id="contato">
+  <div class="container footer__hero">
+    <div class="footer__status" id="footerStatus">
+      <span class="footer__status-dot" aria-hidden="true"></span>
+      <span id="footerStatusText">Atendimento aberto</span>
+      <span class="footer__clock-sep">·</span>
+      <span class="footer__clock" id="footerClock">--:--</span>
+      <span class="footer__clock-sep">·</span>
+      <span>Londrina/PR</span>
+    </div>
+
+    <div class="footer__quick">
+      <label for="footerPhone">Deixe seu WhatsApp que a gente chama você</label>
+      <form class="footer__quick-form" id="footerQuickForm" novalidate>
+        <input type="tel" id="footerPhone" name="phone" placeholder="(43) 99999-9999" autocomplete="tel" inputmode="tel">
+        <button type="submit">Enviar <span>&rarr;</span></button>
+      </form>
+      <p class="footer__quick-feedback" id="footerQuickFeedback" role="status" aria-live="polite"></p>
+    </div>
+  </div>
+
   <div class="container footer__top">
     <div class="footer__brand">
       <img src="images/logo-tessera.svg" alt="Téssera Negócios Imobiliários" class="logo__mark logo__mark--light">
@@ -408,6 +669,8 @@
   </div>
 </footer>
 
-<script src="script.js?v=25"></script>
+<div class="icon-flight" id="iconFlight" aria-hidden="true"></div>
+
+<script src="script.js?v=46"></script>
 </body>
 </html>

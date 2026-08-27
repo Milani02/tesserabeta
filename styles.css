@@ -10,6 +10,8 @@
   --radius:12px;
   --font-head:"Red Hat Display", sans-serif;
   --font-body:"Open Sans", sans-serif;
+  --ease-out:cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out:cubic-bezier(0.77, 0, 0.175, 1);
 }
 
 *{box-sizing:border-box; margin:0; padding:0;}
@@ -49,6 +51,7 @@ h1,h2,h3{font-family:var(--font-head); color:var(--ink); font-weight:700;}
 .btn:hover{transform:translateY(-1px);}
 .btn--solid{background:var(--brand); color:#fff;}
 .btn--outline-dark{border:1.5px solid var(--brand); color:var(--brand);}
+.btn--light{background:#fff; color:var(--brand);}
 
 /* Header — transparent over the hero, solidifies on scroll (matches the findrealestate reference) */
 .header{
@@ -67,6 +70,45 @@ h1,h2,h3{font-family:var(--font-head); color:var(--ink); font-weight:700;}
 .logo__mark{height:46px; width:auto; display:block; filter:brightness(0) invert(1); transition:filter .35s ease;}
 .header.is-solid .logo__mark{filter:none;}
 .logo__mark--light{height:40px; filter:brightness(0) invert(1);}
+
+/* On the home page, the header logo stays out of the picture for the whole hero
+   scroll — it only earns its place once the "TÉSSERA" wordmark has finished its
+   own reveal down in the hero. .has-hero gates this so pages without a hero
+   (e.g. institucional.html) keep the logo visible as normal. */
+.header.has-hero .logo{
+  opacity:0; transform:scale(0.94);
+  transition:opacity .3s var(--ease-out), transform .3s var(--ease-out);
+  pointer-events:none;
+}
+.header.has-hero.logo-revealed .logo{
+  opacity:1; transform:scale(1);
+  pointer-events:auto;
+}
+@media (prefers-reduced-motion: reduce){
+  .header.has-hero .logo{transition:opacity .2s ease;}
+}
+
+/* The hero icon itself detaches into this fixed-position clone once it's done
+   centering (see script.js), and flies to the header logo slot to "form" it —
+   the real glyph making the trip, not an abstract sprite. Sized dynamically per
+   launch (JS sets height to match the hero icon's current on-screen size, so
+   there's no pop at handoff) and moved/scaled entirely via WAAPI transforms.
+   Styled brand green with a soft white glow rather than the hero's plain white
+   stroke: the flight happens right as the finale clouds wash the whole frame
+   white, so plain white would go invisible in transit — the green itself reads
+   fine against that white, and the glow is what keeps it visible earlier in the
+   flight, over the dark hero photo. */
+.icon-flight{
+  position:fixed; top:0; left:0; z-index:150;
+  opacity:0; pointer-events:none; will-change:transform, opacity;
+}
+.icon-flight svg{ height:100%; width:auto; display:block; overflow:visible; }
+.icon-flight .wm-letter{
+  stroke:var(--brand);
+  filter:
+    drop-shadow(0 0 3px rgba(255,255,255,.9))
+    drop-shadow(0 0 9px rgba(255,255,255,.5));
+}
 
 .nav{display:flex; align-items:center; gap:32px;}
 .nav a{font-family:var(--font-head); font-size:14.5px; font-weight:700; color:#fff; transition:color .35s ease;}
@@ -219,6 +261,20 @@ h1,h2,h3{font-family:var(--font-head); color:var(--ink); font-weight:700;}
   vector-effect:non-scaling-stroke;
   filter:drop-shadow(0 2px 20px rgba(0,0,0,.25));
 }
+/* The icon glyph turns brand green the instant it finishes centering (JS toggles
+   .is-centered right as the text-out/recenter phase completes) — so it's already
+   the same color the flight clone uses, instead of popping from white to green
+   at handoff. Swaps the drop-shadow for a light halo at the same time, since a
+   dark shadow does nothing for contrast once the stroke itself is dark. */
+.hero__wordmark-icon .wm-letter{
+  transition:stroke .6s var(--ease-in-out), filter .6s var(--ease-in-out);
+}
+.hero__wordmark-icon.is-centered .wm-letter{
+  stroke:var(--brand);
+  filter:
+    drop-shadow(0 0 3px rgba(255,255,255,.85))
+    drop-shadow(0 0 10px rgba(255,255,255,.45));
+}
 .hero__wordmark-sub-outline{
   height:clamp(15px,2.1vw,26px); width:auto; display:block; margin-top:16px; overflow:visible;
 }
@@ -270,120 +326,437 @@ h1,h2,h3{font-family:var(--font-head); color:var(--ink); font-weight:700;}
 .chevrons__text .is-strong{color:var(--ink);}
 .chevrons__text .is-muted{color:var(--ink-soft);}
 
-/* Como funciona — rewired / steps */
-.rewired{padding:140px 0;}
-.rewired__grid{display:grid; grid-template-columns:.9fr 1.1fr; gap:60px; align-items:start;}
-.rewired__left h2{font-size:clamp(34px,4.6vw,56px); font-weight:700; margin:14px 0 32px; line-height:1.1;}
-.rewired__left h2 .is-muted{color:var(--ink-soft);}
-/* This is a real sequence (talk to an agent -> see listings -> close) so the
-   motion should read as walking through steps, not just fading up as a group.
-   As you scroll past the list, JS marks whichever step sits nearest the middle
-   of the screen as active; the others dim. Reverses on scroll-up like everything
-   else. Only used here — nothing else on the site is genuinely ordered content,
-   so nothing else gets this "current step" treatment. */
-.steps{display:flex; flex-direction:column;}
-.steps li{
-  display:flex; gap:24px; padding:28px 0 28px 16px; margin-left:-16px;
-  border-top:1px solid var(--line); border-left:2px solid transparent;
-  transition:opacity .4s ease, border-left-color .4s ease;
+/* Como funciona — sticky scroll-progress. The grid uses the default
+   align-items:stretch, so .rewired__left becomes as tall as the (much taller)
+   steps column; .rewired__left-inner is the thing that's actually
+   position:sticky, giving it room inside that tall cell to travel and stick
+   before releasing naturally at the row's end — the standard "sticky sidebar"
+   pattern. Background shifts a shade per phase (JS sets data-phase to the
+   active step index) so the transition between steps reads in the whole
+   section, not just the progress rail. */
+.rewired{padding:140px 0; transition:background-color .6s ease;}
+.rewired[data-phase="1"]{background:#f5f8f6;}
+.rewired[data-phase="2"]{background:#eef4f1;}
+.rewired__grid{display:grid; grid-template-columns:.9fr 1.1fr; gap:60px;}
+.rewired__left-inner{position:sticky; top:130px;}
+.rewired__left-inner h2{font-size:clamp(34px,4.6vw,56px); font-weight:700; margin:14px 0 32px; line-height:1.1;}
+.rewired__left-inner h2 .is-muted{color:var(--ink-soft);}
+
+/* Progress rail + floating counter. The rail is continuous, tied straight to
+   scroll position through the steps column (not per-step jumps), and lights up
+   in brand green with a glow standing in for "neon" without leaving the brand
+   palette. The counter is discrete per step and animates its digits with a
+   short JS count tween (see animateCounter in script.js) instead of cutting. */
+.rewired__progress{display:flex; align-items:center; gap:24px; margin-top:48px;}
+.rewired__progress-track{
+  position:relative; width:3px; height:132px; border-radius:2px;
+  background:var(--line); overflow:hidden; flex-shrink:0;
 }
-.steps li:last-child{border-bottom:1px solid var(--line);}
-/* Scoped to .is-revealed so this never fights the fade-up-group entrance
-   (which also sets opacity on these same <li> elements) — specificity is
-   higher here on purpose, but only takes effect once the group has already
-   faded in, so it dims/highlights rather than hiding the entrance itself. */
-.fade-up-group.is-revealed .steps li:not(.is-active){opacity:.45;}
-.steps li.is-active{border-left-color:var(--brand);}
-.steps__num{font-family:var(--font-head); font-weight:700; font-size:14px; color:var(--brand); padding-top:3px; flex-shrink:0;}
-.steps li h3{font-size:19px; margin-bottom:6px;}
-.steps li p{color:var(--ink-soft); font-size:15px;}
+.rewired__progress-fill{
+  position:absolute; left:0; top:0; width:100%; height:0%;
+  background:var(--brand); border-radius:2px;
+  box-shadow:0 0 10px 2px rgba(0,69,54,.6), 0 0 22px 6px rgba(0,69,54,.32);
+  transition:height .25s var(--ease-out);
+}
+.rewired__progress-counter{display:flex; align-items:baseline; gap:6px; font-family:var(--font-head);}
+.rewired__progress-num{font-size:38px; font-weight:900; color:var(--brand); font-variant-numeric:tabular-nums;}
+.rewired__progress-total{font-size:14px; font-weight:700; color:var(--ink-soft);}
 
-/* Stats */
-.stats{background:var(--bg-alt); padding:56px 0;}
-.stats__grid{display:grid; grid-template-columns:repeat(3,1fr); gap:24px; text-align:center;}
-.stats__num{display:block; font-family:var(--font-head); font-size:clamp(32px,4vw,48px); font-weight:900; color:var(--brand);}
-.stats__label{font-size:14px; color:var(--ink-soft);}
+/* Steps — right-to-left depth carousel. .steps-track is a plain tall box (no
+   children contribute to its height, since the cards inside are all
+   position:absolute) that exists purely to give the pin something to travel
+   through: 100vh of scroll per card. .steps is the sticky "window" pinned
+   inside that track — same top offset as .rewired__left-inner, released at the
+   same moment, so both columns let go of the pin together. Every card's
+   position/rotation/scale/blur/shadow is written straight to inline styles
+   every scroll frame from a signed distance-from-active value (see
+   updateStepsCarousel in script.js) — deliberately NOT CSS-transitioned, for
+   the same reason the hero's own scroll-scrubbed properties aren't: a
+   transition fighting a per-frame scroll update is what causes scroll-scrub to
+   visibly lag/rubber-band behind the scrollbar. Only the plain color swap on
+   .is-active (a discrete toggle, not scroll-scrubbed) gets a transition. */
+.steps-track{position:relative; height:300vh;}
+.steps{
+  position:sticky; top:130px; height:min(660px, 70vh);
+  perspective:1800px; overflow:hidden; padding:52px;
+  /* Clipping lives on .steps itself, not an ancestor — overflow on an ancestor
+     of a position:sticky element silently breaks that element's own stickiness
+     (confirmed the hard way: tried it one level up on .steps-track first, and
+     it detached .steps from viewport scroll entirely). An element's own
+     overflow never affects how ITS OWN sticky positioning resolves, only its
+     ancestors' overflow does, so clipping here is safe. This also means the
+     peeking side cards get cropped to this window's frame rather than bleeding
+     into the page margin — a tighter, more deliberate "peek" than an unclipped
+     bleed would read as. The 52px padding is deliberate breathing room, not
+     spacing: box-shadow renders outside a card's own box, so without it the
+     active card's shadow would get clipped flush against its own edge instead
+     of glowing outward. */
+}
+.steps li{
+  position:absolute; inset:0;
+  display:flex; flex-direction:column; justify-content:center; gap:28px;
+  padding:40px; border-radius:var(--radius);
+  background:var(--bg-alt); border:1px solid var(--line);
+  transform-style:preserve-3d; backface-visibility:hidden;
+  will-change:transform, opacity, filter, box-shadow;
+  transition:background-color .4s ease, border-color .4s ease;
+}
+.steps li.is-active{background:#fff; border-color:var(--brand);}
 
-/* Segments */
+/* Photo: clipped container so the shade gradient and zoom stay contained. The
+   photo itself sits on its own layer so it can scale on activation without
+   dragging the gradient or badge along with it. */
+.steps__media{
+  position:relative; width:100%; aspect-ratio:16/10; overflow:hidden;
+  border-radius:calc(var(--radius) - 4px); flex-shrink:0;
+}
+.steps__media-photo{
+  position:absolute; inset:0; background-size:cover; background-position:center;
+  transform:scale(1); filter:saturate(.88) brightness(.97);
+  transition:transform .7s var(--ease-out), filter .5s ease;
+}
+.steps li.is-active .steps__media-photo{transform:scale(1.05); filter:saturate(1) brightness(1);}
+/* The "shade": a bottom-up gradient in the brand's dark green rather than plain
+   black, so the photo feels tinted to the site rather than generically
+   darkened — also what gives the number badge somewhere legible to sit. */
+.steps__media::after{
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(180deg, rgba(0,32,24,0) 55%, rgba(0,32,24,.55) 100%);
+}
+.steps__badge{
+  position:absolute; left:16px; bottom:16px; z-index:1;
+  font-family:var(--font-head); font-weight:700; font-size:13px; letter-spacing:.02em;
+  color:#fff; padding:6px 14px; border-radius:999px;
+  background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.32);
+  backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+}
+
+.steps__body{display:flex; flex-direction:column; gap:8px;}
+.steps li h3{font-size:clamp(22px,2.6vw,30px);}
+.steps li p{color:var(--ink-soft); font-size:16px; max-width:460px;}
+
+/* Stats — minimalist bento grid. One featured block (the biggest number) spans
+   both rows on the left with larger type; the other two sit stacked on the
+   right at a smaller scale — asymmetric sizing/typography standing in for
+   hierarchy, not just decoration (the number that matters most reads first). */
+.stats{background:var(--bg-alt); padding:100px 0;}
+.stats__grid{
+  display:grid; grid-template-columns:1.15fr 1fr; grid-template-rows:repeat(2, minmax(150px, auto));
+  gap:20px;
+}
+.stats__item{
+  position:relative; overflow:hidden; isolation:isolate;
+  display:flex; flex-direction:column; justify-content:flex-end;
+  padding:32px; border-radius:20px; background:#fff; border:1px solid var(--line);
+  transition:transform .35s var(--ease-out), border-color .35s ease;
+}
+.stats__item--feature{grid-column:1; grid-row:1 / 3; padding:40px;}
+.stats__item:nth-child(2){grid-column:2; grid-row:1;}
+.stats__item:nth-child(3){grid-column:2; grid-row:2;}
+
+/* Cursor-tracked glow: JS writes --gx/--gy (px, relative to the block) on
+   pointermove. The ring is a radial gradient masked down to a 1px border via
+   the padding-box/content-box composite trick; the second, softer radial is an
+   inner spotlight. Both sit at opacity:0 until hover, so a visitor who never
+   points at these blocks pays nothing for them. */
+.stats__item::before{
+  content:''; position:absolute; inset:0; border-radius:inherit; padding:1px;
+  background:radial-gradient(240px circle at var(--gx,50%) var(--gy,50%), rgba(0,105,82,.6), transparent 65%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor; mask-composite:exclude;
+  opacity:0; transition:opacity .35s ease; pointer-events:none; z-index:2;
+}
+.stats__item::after{
+  content:''; position:absolute; inset:0; border-radius:inherit; z-index:0;
+  background:radial-gradient(360px circle at var(--gx,50%) var(--gy,50%), rgba(0,69,54,.07), transparent 70%);
+  opacity:0; transition:opacity .35s ease; pointer-events:none;
+}
+@media (hover:hover) and (pointer:fine){
+  .stats__item:hover{transform:translateY(-3px); border-color:rgba(0,69,54,.22);}
+  .stats__item:hover::before, .stats__item:hover::after{opacity:1;}
+  .stats__item:hover .stats__icon{transform:translateY(-3px) rotate(-4deg);}
+}
+
+.stats__icon{
+  position:relative; z-index:1; width:42px; height:42px; margin-bottom:auto;
+  color:var(--brand); transition:transform .4s var(--ease-out);
+}
+.stats__item--feature .stats__icon{width:54px; height:54px;}
+.stats__num{
+  position:relative; z-index:1; display:block; margin-top:22px;
+  font-family:var(--font-head); font-weight:900; color:var(--ink);
+  font-size:clamp(28px,3vw,40px); font-variant-numeric:tabular-nums;
+}
+.stats__item--feature .stats__num{font-size:clamp(44px,5.2vw,68px); color:var(--brand);}
+.stats__label{position:relative; z-index:1; font-size:14.5px; color:var(--ink-soft); margin-top:6px;}
+.stats__item--feature .stats__label{font-size:16px; color:var(--ink);}
+
+/* Segments — large-scale typographic list (editorial-agency pattern). Hovering
+   a row's name is what carries the "browse" feeling — type grows slightly, the
+   description reveals, siblings dim, and (desktop only) a photo preview floats
+   with a lagged follow of the cursor. Clicking commits to one: a single-open
+   accordion expands with quick metrics and a few representative listings. */
 .segments{padding:100px 0;}
 .segments .container:first-child{margin-bottom:48px;}
-.segments__grid{display:grid; grid-template-columns:repeat(3,1fr); gap:24px;}
-.segments__card{
-  position:relative; border-radius:var(--radius); overflow:hidden;
-  aspect-ratio:4/5; background-size:cover; background-position:center;
-  transition:transform .3s ease, background-size .5s ease;
-}
-.segments__card:hover{background-size:auto 112%;}
-.segments__card::before{
-  content:''; position:absolute; inset:0;
-  background:linear-gradient(180deg, rgba(0,20,15,.15) 0%, rgba(0,20,15,.75) 100%);
-}
-.segments__card:hover{transform:translateY(-4px);}
-.segments__card-inner{position:relative; z-index:1; height:100%; display:flex; flex-direction:column; justify-content:flex-end; padding:28px;}
-.segments__card h3{font-size:22px; margin-bottom:10px; color:#fff;}
-.segments__card p{color:rgba(255,255,255,.8); font-size:14.5px; margin-bottom:18px;}
-.segments__link{font-family:var(--font-head); font-weight:700; font-size:14px; color:#fff;}
+.segments__wrap{position:relative;}
+.segments__list{list-style:none;}
+.segments__row{border-top:1px solid var(--line);}
+.segments__row:last-child{border-bottom:1px solid var(--line);}
 
-/* Listings */
-.listings{padding:100px 0; background:var(--bg-alt);}
-.listings__header{display:flex; justify-content:space-between; align-items:flex-end; gap:24px; margin-bottom:44px; flex-wrap:wrap;}
+.segments__toggle{
+  display:flex; align-items:baseline; gap:28px; width:100%;
+  padding:34px 4px; text-align:left; cursor:pointer;
+}
+.segments__name{
+  font-family:var(--font-head); font-weight:900; color:var(--ink);
+  font-size:clamp(30px,5vw,68px); line-height:1; letter-spacing:-.01em;
+  transform-origin:left center;
+  transition:transform .4s var(--ease-out), opacity .4s ease;
+}
+.segments__meta{
+  flex:1; min-width:0; align-self:center;
+  font-size:15px; color:var(--ink-soft);
+  opacity:0; transform:translateX(-10px);
+  transition:opacity .35s ease, transform .35s ease;
+}
+.segments__plus{position:relative; width:26px; height:26px; flex-shrink:0; align-self:center;}
+.segments__plus::before, .segments__plus::after{
+  content:''; position:absolute; top:50%; left:50%; background:var(--ink);
+  transform:translate(-50%,-50%); transition:transform .4s var(--ease-out);
+}
+.segments__plus::before{width:18px; height:2px;}
+.segments__plus::after{width:2px; height:18px;}
+.segments__row.is-open .segments__plus::after{transform:translate(-50%,-50%) rotate(90deg);}
+
+@media (hover:hover) and (pointer:fine){
+  .segments__list:hover .segments__row:not(:hover) .segments__name{opacity:.32;}
+  .segments__row:hover .segments__name{transform:scale(1.06);}
+  .segments__row:hover .segments__meta{opacity:1; transform:translateX(0);}
+}
+
+/* Cursor-following preview: fixed to the viewport, moved via JS (a lagged
+   lerp toward the pointer, not a 1:1 snap — that lag is what reads as
+   "floating" rather than "attached"). Desktop-only; touch has no persistent
+   cursor for this to mean anything, so it's never shown there. */
+.segments__preview{
+  position:fixed; top:0; left:0; z-index:60; pointer-events:none;
+  width:280px; height:200px; border-radius:16px; overflow:hidden;
+  opacity:0; transform:translate(-9999px,-9999px);
+  box-shadow:0 30px 60px -20px rgba(0,20,15,.35);
+  transition:opacity .3s ease;
+  will-change:transform;
+}
+.segments__preview.is-visible{opacity:1;}
+.segments__preview-img{
+  position:absolute; inset:-4%; background-size:cover; background-position:center;
+}
+
+/* Accordion panel — the grid-template-rows 0fr/1fr trick animates height
+   smoothly without JS measuring scrollHeight, and degrades gracefully (still
+   just opens/closes) anywhere it isn't supported. */
+.segments__panel{
+  display:grid; grid-template-rows:0fr;
+  transition:grid-template-rows .5s var(--ease-in-out);
+}
+.segments__row.is-open .segments__panel{grid-template-rows:1fr;}
+.segments__panel-inner{overflow:hidden;}
+.segments__panel-content{
+  display:grid; grid-template-columns:220px 1fr; gap:40px;
+  padding:8px 4px 44px;
+}
+.segments__panel-photo{
+  width:100%; aspect-ratio:4/3; border-radius:14px;
+  background-size:cover; background-position:center;
+}
+.segments__panel-info{display:flex; flex-direction:column; gap:20px; justify-content:center;}
+.segments__stats{display:flex; gap:36px; flex-wrap:wrap;}
+.segments__stat strong{display:block; font-family:var(--font-head); font-weight:900; font-size:22px; color:var(--brand);}
+.segments__stat span{font-size:13px; color:var(--ink-soft);}
+.segments__sample{list-style:none; display:flex; flex-wrap:wrap; gap:10px;}
+.segments__sample li{
+  padding:8px 14px; border-radius:999px; border:1px solid var(--line);
+  font-size:13.5px; color:var(--ink-soft);
+}
+.segments__panel-info .btn{align-self:flex-start;}
+
+/* Listings — art-gallery horizontal drag canvas. .listings__track is a plain
+   viewport-width strip (outside .container, so cards can bleed off the right
+   edge); .listings__scroller is a native overflow-x:auto flex row — wheel,
+   trackpad and touch scroll all work with zero JS. JS only adds click-drag for
+   mouse and the seamless infinite wrap (see script.js). No scroll-snap on
+   purpose — "free flow", not a paginated slider. */
+.listings{padding:100px 0; background:var(--bg-alt); overflow-x:hidden;}
+.listings__header{display:flex; justify-content:space-between; align-items:flex-end; gap:24px; margin-bottom:36px; flex-wrap:wrap;}
 .listings__header .section-title{margin-bottom:0;}
-.listings__grid{display:grid; grid-template-columns:repeat(3,1fr); gap:24px;}
-.listing-card{background:#fff; border-radius:var(--radius); overflow:hidden; border:1px solid var(--line);}
-.listing-card__img{height:220px; background-size:cover; background-position:center; position:relative;}
-.listing-card__tag{
-  position:absolute; top:14px; left:14px; background:var(--brand); color:#fff;
-  font-family:var(--font-head); font-size:11.5px; font-weight:700; padding:5px 12px; border-radius:100px;
-}
-.listing-card__body{padding:20px;}
-.listing-card__code{font-size:12px; color:var(--ink-soft); letter-spacing:.03em;}
-.listing-card__body h3{font-size:17px; margin:6px 0 8px;}
-.listing-card__specs{font-size:13.5px; color:var(--ink-soft); margin-bottom:10px;}
-.listing-card__price{font-family:var(--font-head); font-weight:900; font-size:19px; color:var(--brand);}
+.listings__header-right{display:flex; flex-direction:column; align-items:flex-end; gap:10px;}
+.listings__hint{font-size:12.5px; color:var(--ink-soft); letter-spacing:.02em;}
 
-/* Big text Comprar/Alugar */
-.bigtext{background:var(--brand); color:#fff;}
-.bigtext__row{display:grid; grid-template-columns:1fr 1fr; align-items:center; padding:56px 0; border-bottom:1px solid rgba(255,255,255,.15);}
-.bigtext__row:last-child{border-bottom:none;}
-.bigtext__info{max-width:380px;}
-.bigtext__info p{color:rgba(255,255,255,.8); font-size:16px;}
-.bigtext h2{font-size:clamp(56px,10vw,120px); text-align:right; color:#fff; line-height:.9;}
+.listings__track{width:100%;}
+.listings__scroller{
+  display:flex; gap:32px; overflow-x:auto; overflow-y:hidden;
+  cursor:grab; user-select:none; -webkit-user-select:none;
+  scrollbar-width:none; padding:4px calc(max(32px, (100vw - 1240px) / 2 + 32px)) 12px;
+}
+.listings__scroller::-webkit-scrollbar{display:none;}
+.listings__scroller.is-dragging{cursor:grabbing;}
+.listings__scroller.is-dragging .listing-card__img{transition:none;}
+
+.listing-card{flex:0 0 auto; width:min(78vw, 420px);}
+.listing-card__frame{
+  position:relative; overflow:hidden; border-radius:var(--radius);
+  aspect-ratio:4/5; background:var(--line);
+  box-shadow:0 1px 2px rgba(17,24,21,.04), 0 14px 32px rgba(17,24,21,.06);
+}
+.listing-card__img{
+  position:absolute; inset:0; background-size:cover; background-position:center;
+  transition:transform .6s var(--ease-out); pointer-events:none;
+}
+.listing-card__tag{
+  position:absolute; top:16px; left:16px; z-index:2; background:var(--brand); color:#fff;
+  font-family:var(--font-head); font-size:11.5px; font-weight:700; padding:6px 13px; border-radius:100px;
+}
+.listing-card__tag--rent{background:var(--ink);}
+
+/* Hover zoom mask: the photo scales up underneath a translucent, brand-tinted
+   layer that fades in — a schematic floor plan + suites/m² sit on top of that
+   layer, "revealed" rather than replacing the photo outright. Desktop-only:
+   there's no hover to reveal it on touch, so those specs just aren't shown
+   there (they're still in the plain text row below every card either way). */
+.listing-card__reveal{
+  position:absolute; inset:0; z-index:1;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px;
+  background:rgba(0,32,24,.58);
+  opacity:0; transition:opacity .45s ease; pointer-events:none;
+}
+.listing-card__plan{width:58%; height:auto;}
+.listing-card__reveal-specs{
+  display:flex; gap:22px; font-family:var(--font-head); font-weight:700;
+  color:#fff; font-size:13px; letter-spacing:.05em; text-transform:uppercase;
+}
+@media (hover:hover) and (pointer:fine){
+  .listing-card__frame:hover .listing-card__img{transform:scale(1.08);}
+  .listing-card__frame:hover .listing-card__reveal{opacity:1;}
+}
+@media (prefers-reduced-motion: reduce){
+  .listing-card__frame:hover .listing-card__img{transform:none;}
+}
+
+.listing-card__body{padding-top:18px; display:flex; justify-content:space-between; align-items:baseline; gap:16px;}
+.listing-card__code{display:block; font-size:11.5px; color:var(--ink-soft); letter-spacing:.05em; text-transform:uppercase;}
+.listing-card__body h3{font-size:18px; margin:4px 0 4px;}
+.listing-card__specs{font-size:13.5px; color:var(--ink-soft);}
+.listing-card__price{font-family:var(--font-head); font-weight:700; font-size:15px; color:var(--ink); white-space:nowrap; flex-shrink:0;}
+
+/* Comprar/Alugar — kinetic typography + toggle switch. The marquee is a
+   decorative background layer only (aria-hidden, ghost-stroke type, same
+   outline-text technique as .values__num elsewhere on the site); the depth
+   the brief asks for comes from it sitting behind the static foreground
+   sentence, not from any 3D effect. */
+.bigtext{position:relative; background:var(--brand); color:#fff; padding:160px 0; overflow:hidden;}
+
+.bigtext__marquee{position:absolute; inset:0; z-index:0; display:flex; align-items:center; pointer-events:none;}
+.bigtext__marquee-track{display:flex; width:max-content; animation:bigtextMarquee 34s linear infinite;}
+.bigtext__marquee-track span{
+  font-family:var(--font-head); font-weight:900; font-size:clamp(90px,15vw,220px);
+  text-transform:uppercase; white-space:nowrap; padding-right:56px;
+  color:transparent; -webkit-text-stroke:1.5px rgba(255,255,255,.1);
+}
+@keyframes bigtextMarquee{ from{transform:translateX(0);} to{transform:translateX(-50%);} }
+@media (prefers-reduced-motion: reduce){ .bigtext__marquee-track{animation:none;} }
+
+.bigtext__stage{position:relative; z-index:1;}
+.bigtext__sentence{
+  display:flex; flex-wrap:wrap; align-items:center; gap:.32em;
+  font-family:var(--font-head); font-weight:900; text-transform:uppercase;
+  font-size:clamp(34px,7.2vw,108px); line-height:1.05; letter-spacing:-.01em;
+}
+/* Real toggle buttons — the only interactive words in the sentence. Sized off
+   the inherited font (em-based padding), so they scale as one piece with the
+   rest of the giant type instead of needing their own breakpoints. */
+.bigtext__toggle{
+  font:inherit; text-transform:inherit; letter-spacing:inherit; color:#fff;
+  padding:.06em .48em; border-radius:100px; border:2px solid rgba(255,255,255,.4);
+  transition:background-color .35s var(--ease-out), color .35s var(--ease-out), border-color .35s var(--ease-out);
+}
+.bigtext__toggle.is-active{background:#fff; color:var(--brand); border-color:#fff;}
+@media (hover:hover) and (pointer:fine){
+  .bigtext__toggle:not(.is-active):hover{border-color:rgba(255,255,255,.8);}
+}
+
+.bigtext__panel{margin-top:48px; display:flex; flex-wrap:wrap; align-items:center; gap:28px;}
+.bigtext__desc-stack{display:grid; max-width:440px;}
+.bigtext__desc{grid-area:1/1; opacity:0; transition:opacity .4s ease; color:rgba(255,255,255,.75); font-size:16px;}
+.bigtext__desc.is-active{opacity:1;}
 
 /* Regions */
 .regions{padding:100px 0; overflow:hidden;}
-.regions__grid{display:grid; grid-template-columns:1fr .85fr; gap:60px; align-items:center;}
-.regions__photo{
-  height:420px; border-radius:var(--radius);
-  background-size:cover; background-position:center;
-}
-.regions__chips{display:flex; flex-wrap:wrap; gap:10px; margin-top:20px;}
-.chip{
-  padding:9px 18px; border-radius:100px; border:1px solid var(--line);
-  font-family:var(--font-head); font-weight:700; font-size:13.5px; color:var(--ink);
-}
-.chip--solid{background:var(--brand); color:#fff; border-color:var(--brand);}
+.regions__grid{display:grid; grid-template-columns:1fr 1.05fr; gap:60px; align-items:center;}
+.regions__lead{margin-top:16px; max-width:420px; color:var(--ink-soft); font-size:16px;}
 
-/* Dark CTA */
-.darkcta{background:var(--brand-dark); color:#fff; padding:80px 0;}
-.darkcta__grid{display:grid; grid-template-columns:1fr auto; gap:40px; align-items:center;}
-.darkcta h2{color:#fff; font-size:clamp(26px,3.4vw,36px); margin-bottom:10px; max-width:460px;}
-.darkcta > .container > div > p{color:rgba(255,255,255,.7);}
-.darkcta__info{display:flex; gap:44px; flex-wrap:wrap;}
+/* Real, embedded map — no API key needed for the ?q=...&output=embed form.
+   The address is a floating glass card over the bottom-left corner, same
+   glassmorphism treatment as .steps__badge elsewhere on the site. */
+.regions__map-wrap{position:relative; border-radius:var(--radius); overflow:hidden; min-height:420px; background:var(--bg-alt);}
+.regions__map-embed{position:absolute; inset:0; width:100%; height:100%; border:0;}
+.regions__map-address{
+  position:absolute; left:20px; bottom:20px; z-index:1; max-width:280px;
+  background:rgba(10,20,17,.88); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+  border-radius:14px; padding:20px 22px; color:#fff;
+  box-shadow:0 20px 40px -16px rgba(0,20,15,.4);
+}
+.regions__map-address-label{
+  display:block; font-family:var(--font-head); font-weight:700; font-size:12px;
+  letter-spacing:.05em; text-transform:uppercase; color:var(--brand-light); margin-bottom:8px;
+}
+.regions__map-address p{font-size:14.5px; line-height:1.5; color:rgba(255,255,255,.9); margin-bottom:12px;}
+.regions__map-link{display:inline-flex; align-items:center; gap:6px; font-family:var(--font-head); font-weight:700; font-size:13.5px; color:#fff;}
+.regions__map-link:hover{text-decoration:underline;}
+
+/* Dark CTA — cursor spotlight, all contained inside the section's own box
+   (redone after the first pass reached outside .darkcta with a page-wide dim
+   — that was the actual complaint, not the dark theme itself). JS writes
+   --sx/--sy from pointermove on .darkcta; both the grid-bg mask and the glow
+   below read those, so the "explored" area is exactly where the cursor is. */
+.darkcta{position:relative; background:var(--brand-dark); color:#fff; padding:120px 0; overflow:hidden; text-align:center;}
+.darkcta__stage{position:relative; z-index:1; max-width:640px; margin:0 auto; display:flex; flex-direction:column; align-items:center;}
+.darkcta h2{color:#fff; font-size:clamp(28px,3.6vw,42px); margin:14px 0 10px;}
+.darkcta__stage > p{color:rgba(255,255,255,.7); font-size:16px;}
+.darkcta__info{display:flex; gap:44px; flex-wrap:wrap; justify-content:center; margin-top:56px; text-align:left;}
 .darkcta__info p{font-size:16px; margin-top:2px;}
 .darkcta__info a{font-weight:700; text-decoration:underline;}
 
-/* Services */
-.services{padding:100px 0; background:var(--bg-alt);}
-.services__grid{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-top:28px;}
-.services__item{
-  background:#fff; border:1px solid var(--line); border-radius:var(--radius);
-  padding:18px 20px; font-family:var(--font-head); font-weight:700; font-size:14.5px;
-  display:flex; flex-direction:column; gap:4px; transition:border-color .2s ease;
+/* Dot-grid, only visible within a soft circle around the cursor (a CSS mask,
+   not a second dark layer on top of the content — the classic "spotlight"
+   technique). Sits flat/invisible until a pointer is actually present. */
+.darkcta__grid-bg{
+  position:absolute; inset:0; z-index:0; pointer-events:none;
+  background-image:radial-gradient(rgba(255,255,255,.35) 1px, transparent 1px);
+  background-size:28px 28px;
+  -webkit-mask-image:radial-gradient(circle 260px at var(--sx,50%) var(--sy,50%), #000 0%, transparent 72%);
+  mask-image:radial-gradient(circle 260px at var(--sx,50%) var(--sy,50%), #000 0%, transparent 72%);
+  opacity:0; transition:opacity .4s ease;
 }
-.services__item:hover{border-color:var(--brand);}
-.services__item small{font-family:var(--font-body); font-weight:400; color:var(--ink-soft); font-size:12.5px;}
+.darkcta__glow{
+  position:absolute; inset:0; z-index:0; pointer-events:none;
+  background:radial-gradient(420px circle at var(--sx,50%) var(--sy,50%), rgba(0,180,140,.28), transparent 70%);
+  opacity:0; transition:opacity .4s ease;
+}
+@media (hover:hover) and (pointer:fine){
+  .darkcta:hover .darkcta__grid-bg,
+  .darkcta:hover .darkcta__glow{opacity:1;}
+}
 
-/* Final CTA */
+/* Magnetic button — JS tracks the pointer across the whole section (already
+   far wider than the button) and translates the button toward it once
+   within range; the short transition here is what turns those discrete
+   mousemove updates into a smooth, slightly springy follow instead of an
+   instant snap. Reset (mouseleave) rides the same transition, so the release
+   reads as a "snap back", not a cut. */
+.darkcta__magnetic{margin-top:28px; transition:transform .3s cubic-bezier(.23,1,.32,1);}
+
+/* Final CTA — base rules stay the plain photo-CTA used by institucional.html;
+   .finalcta--fill (index.html only) overrides into the pinned screen-fill
+   text-reveal treatment instead, rather than forking a second class. */
 .finalcta{position:relative; padding:170px 32px; text-align:center; overflow:hidden;}
 .finalcta__bg{position:absolute; inset:0; background-size:cover; background-position:center;}
 .finalcta__bg::after{content:''; position:absolute; inset:0; background:linear-gradient(180deg, rgba(0,20,15,.35), rgba(0,20,15,.6));}
@@ -391,6 +764,57 @@ h1,h2,h3{font-family:var(--font-head); color:var(--ink); font-weight:700;}
 .finalcta h2{color:#fff; font-size:clamp(30px,5vw,54px); margin-bottom:36px;}
 .finalcta h2 .is-muted{color:rgba(255,255,255,.65);}
 .finalcta__btn{padding:16px 30px; font-size:15.5px;}
+
+/* Screen-fill text reveal. .finalcta--fill is a tall (220vh) scroll runway;
+   .finalcta__pin is the sticky 100vh window (same pin pattern as the hero and
+   .rewired). The outline copy (hollow, stroke only — same technique as
+   .values__num elsewhere on the site) sits as the base layer; the solid,
+   brand-colored copy sits exactly on top and is clipped with clip-path:
+   inset(), whose right-hand inset shrinks from 100% to 0% as the section
+   scrolls through — a left-to-right wipe, not a fade, per the brief. Driven
+   every frame from scroll position with no CSS transition on clip-path, same
+   reasoning as every other scroll-scrubbed property on this site: a
+   transition fighting a per-frame update is what causes visible lag. */
+.finalcta--fill{height:220vh; padding:0; overflow:visible;}
+.finalcta__pin{
+  position:sticky; top:0; height:100vh; overflow:hidden;
+  display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:40px;
+  background:var(--bg-alt); padding:0 max(32px, calc((100vw - 1240px) / 2 + 32px));
+}
+/* Left-aligned on purpose, not centered: with three lines of very different
+   widths, a centered block makes a left-to-right clip-path sweep read as
+   uneven/confusing (each line's "left edge" sits at a different x). Left
+   alignment gives every line the same starting edge, so the wipe reads as one
+   coherent sweep across all three at once. */
+/* display:inline-block (not the flex item's default cross-axis shrink) is
+   what makes this size reliably from its in-flow content alone — with the
+   absolutely-positioned fill child otherwise in the mix, flex's own
+   shrink-to-fit sizing measured this box far narrower than the text actually
+   rendered, so the clip-path (sized to match the box) clipped well before
+   the real right edge of the words. */
+.finalcta__text-wrap{position:relative; display:inline-block; text-align:left;}
+/* Scoped as .finalcta--fill .finalcta__text (not just .finalcta__text) on
+   purpose: the base .finalcta h2 rule above (element selector, for
+   institucional.html's plain photo-CTA h2) has higher specificity
+   (0,1,1) than a bare single-class rule (0,1,0) would, and silently won —
+   this h2 was rendering at the OLD rule's 54px instead of this one, which is
+   why the clip-path fill looked "stuck" (it was sized to that box correctly;
+   the box itself was just far smaller than intended). */
+.finalcta--fill .finalcta__text{
+  font-family:'Oswald', var(--font-head); font-weight:700; text-transform:uppercase;
+  font-size:clamp(48px, 13vh, 160px); line-height:.92; letter-spacing:-.01em;
+}
+.finalcta__line{display:block;}
+.finalcta__text:not(.finalcta__text--fill){color:transparent; -webkit-text-stroke:1.5px var(--brand);}
+.finalcta__text--fill{
+  position:absolute; inset:0; z-index:1; color:var(--brand);
+  clip-path:inset(0 100% 0 0); will-change:clip-path;
+}
+.finalcta--fill .finalcta__btn{
+  opacity:0; transform:translateY(16px);
+  transition:opacity .5s ease, transform .5s ease;
+}
+.finalcta--fill .finalcta__btn.is-visible{opacity:1; transform:translateY(0);}
 
 /* Institucional — simple static photo hero (not the giant scroll-scrub hero.js
    effect; a whole second hand-built version of that per page would be a lot of
@@ -417,8 +841,60 @@ h1,h2,h3{font-family:var(--font-head); color:var(--ink); font-weight:700;}
 .values__card h3{font-size:20px; margin-bottom:10px;}
 .values__card p{color:var(--ink-soft); font-size:15px;}
 
-/* Footer */
-.footer{background:var(--brand-dark); color:#fff; padding-top:70px;}
+/* Overlapping footer / curtain reveal — the standard CSS-only sticky-footer
+   technique: <main> stacks above <footer> (z-index) with an opaque
+   background, so as its own bottom edge scrolls up past the viewport bottom,
+   it visually slides "over" the footer; the footer itself is
+   position:sticky; bottom:0, so it holds at the bottom of the screen and is
+   progressively uncovered rather than just scrolling into place normally.
+   No JS needed for the reveal itself — pure CSS. <main> deliberately gets NO
+   overflow/border-radius here even though that would round its bottom
+   corners nicely for the "curtain edge" look: <main> contains several other
+   position:sticky elements (the hero pin, .rewired, .steps, .finalcta__pin),
+   and overflow on any ancestor of a sticky element silently breaks that
+   element's stickiness — confirmed the hard way earlier this session on
+   .steps-track. Plain z-index + opaque background is enough for the reveal
+   itself; the rounded edge is a look, not a requirement, and isn't worth
+   that risk. */
+main{position:relative; z-index:1; background:var(--bg);}
+.footer{position:sticky; bottom:0; z-index:0; background:var(--brand-dark); color:#fff; padding-top:56px;}
+
+/* Live status + clock, and the one-field quick-contact form. */
+.footer__hero{
+  display:flex; flex-wrap:wrap; justify-content:space-between; align-items:flex-end;
+  gap:32px; padding-bottom:44px; margin-bottom:44px; border-bottom:1px solid rgba(255,255,255,.12);
+}
+.footer__status{display:flex; align-items:center; gap:12px; font-family:var(--font-head); font-size:14px; font-weight:700;}
+.footer__status-dot{width:8px; height:8px; border-radius:50%; background:#5fd9a4; flex-shrink:0;}
+.footer__status-dot::after{content:''; display:block; width:100%; height:100%; border-radius:50%; background:inherit; animation:footerPulse 2s ease-in-out infinite;}
+.footer__status.is-closed .footer__status-dot{background:#e0b25c;}
+@keyframes footerPulse{0%,100%{box-shadow:0 0 0 0 rgba(95,217,164,.5);} 50%{box-shadow:0 0 0 5px rgba(95,217,164,0);}}
+@media (prefers-reduced-motion: reduce){.footer__status-dot::after{animation:none;}}
+.footer__clock{color:rgba(255,255,255,.55); font-weight:400; font-variant-numeric:tabular-nums;}
+.footer__clock-sep{color:rgba(255,255,255,.3);}
+
+.footer__quick{max-width:360px; width:100%;}
+.footer__quick label{display:block; font-size:13.5px; color:rgba(255,255,255,.7); margin-bottom:10px;}
+.footer__quick-form{display:flex; gap:10px;}
+.footer__quick-form input{
+  flex:1; min-width:0; background:rgba(255,255,255,.08); border:1.5px solid rgba(255,255,255,.2);
+  border-radius:var(--radius); padding:12px 16px; color:#fff; font-size:14.5px;
+  transition:border-color .2s ease;
+}
+.footer__quick-form input::placeholder{color:rgba(255,255,255,.4);}
+.footer__quick-form input:focus{outline:none; border-color:#fff;}
+.footer__quick-form.is-invalid input{border-color:#e08a6a;}
+.footer__quick-form button{
+  flex-shrink:0; display:inline-flex; align-items:center; gap:6px;
+  background:#fff; color:var(--brand); font-family:var(--font-head); font-weight:700; font-size:14px;
+  padding:12px 18px; border-radius:var(--radius); transition:opacity .2s ease;
+}
+.footer__quick-form button:hover{opacity:.88;}
+.footer__quick-feedback{font-size:13px; margin-top:10px; min-height:1.2em; color:rgba(255,255,255,.7);}
+.footer__quick-feedback.is-error{color:#e08a6a;}
+.footer__quick-feedback.is-success{color:#5fd9a4;}
+.footer__quick-feedback a{font-weight:700; text-decoration:underline; color:inherit;}
+
 .footer__top{display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:40px; padding-bottom:50px; border-bottom:1px solid rgba(255,255,255,.12);}
 .footer__brand p{color:rgba(255,255,255,.6); font-size:13px; margin-top:10px;}
 .footer p{font-size:14.5px; margin-bottom:6px; color:rgba(255,255,255,.85);}
@@ -430,16 +906,49 @@ h1,h2,h3{font-family:var(--font-head); color:var(--ink); font-weight:700;}
   .nav{display:none;}
   .burger{display:flex;}
   .header__phone{display:none;}
-  .segments__grid, .listings__grid, .services__grid, .values__grid{grid-template-columns:1fr;}
+  .values__grid{grid-template-columns:1fr;}
+  .listings__hint{display:none;}
+  .listings__header-right{align-items:flex-start;}
+  .listing-card{width:82vw;}
+  .listings__scroller{padding:4px 24px 12px; gap:20px;}
+  .segments__toggle{padding:24px 4px; gap:16px;}
+  .segments__meta{display:none;}
+  .segments__panel-content{grid-template-columns:1fr; gap:20px; padding:0 4px 32px;}
+  .segments__panel-photo{aspect-ratio:16/9;}
+  .stats__grid{grid-template-columns:1fr; grid-template-rows:none;}
+  .stats__item--feature, .stats__item:nth-child(2), .stats__item:nth-child(3){grid-column:1; grid-row:auto;}
   .intro__grid{grid-template-columns:1fr; gap:24px;}
   .searchbar{flex-direction:column; align-items:stretch;}
-  .bigtext__row{grid-template-columns:1fr; text-align:left;}
-  .bigtext h2{text-align:left;}
-  .darkcta__grid{grid-template-columns:1fr;}
+  .bigtext{padding:100px 0;}
+  .bigtext__toggle{border-width:1.5px;}
+  .darkcta{padding:90px 0;}
+  .finalcta--fill{height:180vh;}
+  .finalcta__text{font-size:clamp(40px, 9vh, 90px);}
+  .darkcta__info{gap:28px;}
   .regions__grid{grid-template-columns:1fr; gap:32px;}
-  .regions__photo{height:260px; order:-1;}
+  .regions__map-wrap{order:-1; min-height:320px;}
+  .regions__map-address{left:14px; bottom:14px; right:14px; max-width:none;}
   .footer__top{grid-template-columns:1fr 1fr; gap:28px;}
+  .footer__hero{flex-direction:column; align-items:flex-start; gap:24px;}
+  .footer__quick{max-width:none;}
   .rewired__grid{grid-template-columns:1fr; gap:40px;}
+  .rewired__left-inner{position:static;}
+  .rewired__progress-track{height:80px;}
+  /* The 3D scroll-scrubbed carousel needs real screen width to read as depth
+     rather than clutter, and pinned-scroll math gets fights easily with mobile
+     browser chrome show/hide — so phones get the plain stacked list instead.
+     JS keeps computing/writing inline styles regardless; !important is what
+     lets this plain stylesheet rule beat those per-frame inline values. */
+  .steps-track{height:auto;}
+  .steps{
+    position:static; height:auto; display:flex; flex-direction:column; gap:20px;
+    perspective:none; overflow:visible; padding:0;
+  }
+  .steps li{
+    position:static !important; transform:none !important; opacity:1 !important;
+    filter:none !important; box-shadow:0 1px 2px rgba(17,24,21,.04), 0 10px 26px rgba(17,24,21,.05) !important;
+    padding:32px 24px;
+  }
   .chevrons__row{flex-wrap:wrap; justify-content:center;}
   .chevron{margin-left:-30px; width:150px; height:190px;}
 }
@@ -477,13 +986,16 @@ h1,h2,h3{font-family:var(--font-head); color:var(--ink); font-weight:700;}
 @media (prefers-reduced-motion: reduce){
   .reveal-text .is-muted, .fade-up, .fade-up-group > *, .fade-in-side{opacity:1; transform:none; transition:none;}
   .cloud{animation:none;}
+  /* Same static fallback as the mobile breakpoint: keeps the content (still
+     reachable, still legible) and drops the 3D scroll-scrub, per prefers-
+     reduced-motion — fewer/gentler, not zero. */
+  .steps-track{height:auto;}
+  .steps{
+    position:static; height:auto; display:flex; flex-direction:column; gap:20px;
+    perspective:none; overflow:visible; padding:0;
+  }
+  .steps li{
+    position:static !important; transform:none !important; opacity:1 !important;
+    filter:none !important; box-shadow:0 1px 2px rgba(17,24,21,.04), 0 10px 26px rgba(17,24,21,.05) !important;
+  }
 }
-
-/* Listing / segment image hover lift */
-.listing-card{transition:transform .35s ease, box-shadow .35s ease;}
-.listing-card:hover{transform:translateY(-6px); box-shadow:0 24px 40px -24px rgba(0,20,15,.25);}
-.listing-card__img{overflow:hidden; transition:background-size .5s ease;}
-.listing-card:hover .listing-card__img{background-size:auto 115%;}
-
-.services__item{transition:border-color .25s ease, transform .25s ease;}
-.services__item:hover{transform:translateY(-3px);}
