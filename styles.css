@@ -53,13 +53,37 @@ h1,h2,h3{font-family:var(--font-head); color:var(--ink); font-weight:700;}
 .btn--outline-dark{border:1.5px solid var(--brand); color:var(--brand);}
 .btn--light{background:#fff; color:var(--brand);}
 
-/* Header — transparent over the hero, solidifies on scroll (matches the findrealestate reference) */
+/* Header — stays transparent everywhere on the page, never gains a solid
+   background. What DOES still change per-section is the color of its own
+   content (logo/nav/phone/burger): .header--on-light is toggled in
+   script.js by sampling which section is currently sitting behind the
+   header (see darkHeaderSections/updateHeaderState) so those stay legible
+   over both light and dark sections without ever needing a backdrop. */
 .header{
   position:fixed; top:0; left:0; right:0; z-index:100;
-  background:transparent; border-bottom:1px solid transparent;
-  transition:background .35s ease, border-color .35s ease, backdrop-filter .35s ease;
+  background:transparent;
+  transition:transform .35s var(--ease-out), opacity .4s ease;
 }
-.header.is-solid{background:rgba(255,255,255,.96); backdrop-filter:blur(8px); border-bottom-color:var(--line);}
+/* Mobile-only, two independent hidden states — deliberately NOT the same
+   mechanism, see script.js for why:
+   - .header--pre-landing (opacity only, no transform) covers the header
+     from page load until the hero's icon actually lands in the logo slot.
+     It has to be opacity-only: the icon-flight animation measures the
+     header logo's on-screen position with getBoundingClientRect() right
+     before it launches, and a transform:translateY(-100%) hide would move
+     that box off-screen and send the icon flying to the wrong spot.
+     Opacity never affects layout geometry, so the measurement stays correct
+     even while this is fully transparent.
+   - .header--hidden (transform slide) is the ordinary hide-on-scroll-down /
+     show-on-scroll-up behavior, only ever engaged AFTER the hero's fully
+     scrolled past — nothing is measuring against the header by then, so a
+     transform-based slide is fine (and reads better for that repeated,
+     scroll-driven toggle than an opacity fade would).
+   Both stay media-gated here as a second guard, same reasoning as before. */
+@media (max-width:900px){
+  .header--hidden{transform:translateY(-100%);}
+  .header--pre-landing{opacity:0; pointer-events:none;}
+}
 .header__inner{display:flex; align-items:center; justify-content:space-between; padding:16px 32px;}
 .logo{display:flex; align-items:center;}
 /* Official Téssera logo (downloaded from tessera.imb.br) is the full-color mark —
@@ -68,7 +92,7 @@ h1,h2,h3{font-family:var(--font-head); color:var(--ink); font-weight:700;}
    invert(1) turns any non-transparent pixel pure white, no separate white asset
    needed, and it fades back to full color in step with the header background. */
 .logo__mark{height:46px; width:auto; display:block; filter:brightness(0) invert(1); transition:filter .35s ease;}
-.header.is-solid .logo__mark{filter:none;}
+.header--on-light .logo__mark{filter:none;}
 .logo__mark--light{height:40px; filter:brightness(0) invert(1);}
 
 /* On the home page, the header logo stays out of the picture for the whole hero
@@ -112,27 +136,65 @@ h1,h2,h3{font-family:var(--font-head); color:var(--ink); font-weight:700;}
 
 .nav{display:flex; align-items:center; gap:32px;}
 .nav a{font-family:var(--font-head); font-size:14.5px; font-weight:700; color:#fff; transition:color .35s ease;}
-.header.is-solid .nav a{color:var(--ink);}
+.header--on-light .nav a{color:var(--ink);}
 .nav a:hover{color:var(--brand-light);}
-.header.is-solid .nav a:hover{color:var(--brand);}
+.header--on-light .nav a:hover{color:var(--brand);}
 
 .header__actions{display:flex; align-items:center; gap:20px;}
 .header__phone{display:flex; align-items:center; gap:7px; font-family:var(--font-head); font-weight:700; font-size:14.5px; color:#fff; transition:color .35s ease;}
-.header.is-solid .header__phone{color:var(--brand);}
+.header--on-light .header__phone{color:var(--brand);}
 .burger{display:none; flex-direction:column; gap:5px; width:32px; height:32px; align-items:center; justify-content:center;}
 .burger span{width:20px; height:2px; background:#fff; transition:background .35s ease;}
-.header.is-solid .burger span{background:var(--ink);}
+.header--on-light .burger span{background:var(--ink);}
 
-.burger-menu{position:fixed; inset:0; z-index:200; visibility:hidden; opacity:0; transition:opacity .3s ease;}
-.burger-menu.is-open{visibility:visible; opacity:1;}
-.burger-menu__backdrop{position:absolute; inset:0; background:rgba(0,0,0,.4);}
+/* Full-screen curtain, not a side drawer: opens by sliding straight down from
+   above the viewport (translateY -100% → 0, reading top-to-bottom), closes by
+   reversing the same axis (0 → -100%, reading bottom-to-top as the panel exits
+   back through the top) — one transform, two readings, no separate open/close
+   keyframes needed. */
+.burger-menu{position:fixed; inset:0; z-index:200; visibility:hidden; transition:visibility 0s linear .5s;}
+.burger-menu.is-open{visibility:visible; transition:visibility 0s linear 0s;}
 .burger-menu__content{
-  position:absolute; top:0; right:0; bottom:0; width:min(80vw,360px); background:#fff;
-  padding:100px 32px 40px; display:flex; flex-direction:column; gap:40px;
-  transform:translateX(100%); transition:transform .35s ease;
+  position:absolute; inset:0; background:#fff;
+  padding:110px 32px 40px; display:flex; flex-direction:column; align-items:flex-start; justify-content:flex-start; gap:40px;
+  transform:translateY(-100%); transition:transform 1.8s var(--ease-out);
 }
-.burger-menu.is-open .burger-menu__content{transform:translateX(0);}
+.burger-menu.is-open .burger-menu__content{transform:translateY(0);}
+.burger-menu__logo{height:42px; width:auto; display:block;}
+.burger-menu__close{
+  position:absolute; top:20px; right:20px; width:44px; height:44px;
+  display:flex; align-items:center; justify-content:center;
+  background:none; border:none; color:var(--ink); cursor:pointer;
+}
+.burger-menu__close svg{width:22px; height:22px;}
 .burger-menu__content nav{display:flex; flex-direction:column; gap:20px; font-family:var(--font-head); font-weight:700; font-size:19px;}
+.burger-menu__content nav a{color:var(--ink);}
+.burger-menu__content .header__phone{color:var(--brand);}
+
+/* Words rise up into place from well below their own resting spot, all of
+   them together (no per-row stagger) — a single slow, unified motion rather
+   than a sequence. transition-delay is shared across every link and the
+   phone number so they start the instant the curtain's mostly down, not
+   individually offset. var(--ease-out) is front-loaded (fast start, long
+   slow tail) — fine for a quick UI snap, but on a distance/duration this big
+   it reads as "pop up, then just fade" rather than a rise you can actually
+   watch happen. var(--ease-in-out) spreads the travel across the whole
+   duration instead, which is what makes the climb itself visible. */
+.burger-menu__content nav a, .burger-menu__content > .header__phone{
+  opacity:0; transform:translateY(80px);
+  transition:opacity 2.4s var(--ease-in-out), transform 2.4s var(--ease-in-out);
+  transition-delay:.4s;
+}
+.burger-menu.is-open .burger-menu__content nav a,
+.burger-menu.is-open .burger-menu__content > .header__phone{
+  opacity:1; transform:translateY(0);
+}
+@media (prefers-reduced-motion: reduce){
+  .burger-menu__content{transition:transform .3s ease;}
+  .burger-menu__content nav a, .burger-menu__content > .header__phone{
+    transition:none; opacity:1; transform:none;
+  }
+}
 
 /* Hero — pinned scroll effect: photo zooms, clouds drift, wordmark emerges.
    500vh total / 100vh pin = 400vh of scroll-scrubbed animation, matching the
@@ -903,54 +965,99 @@ main{position:relative; z-index:1; background:var(--bg);}
 .footer__legal-links{display:flex; gap:20px;}
 
 @media (max-width:900px){
+  /* Compact mode: every section on this site was paced for a desktop scroll
+     wheel (100-170px of pure top/bottom air per section, pin runways sized in
+     vh that assume a tall viewport). On a phone that adds up to ~17 screen-
+     heights of scroll before reaching the footer, most of it empty space. All
+     of the padding/height cuts below are mobile-only (base desktop rules
+     untouched) and aim to roughly halve that, so content shows up sooner and
+     each swipe feels like it's moving past something. */
+  .container{padding:0 22px;}
   .nav{display:none;}
   .burger{display:flex;}
-  .header__phone{display:none;}
+  .header__actions .header__phone{display:none;}
+  .header__actions .btn{display:none;}
+  /* The 5px non-scaling-stroke outline was tuned for the wordmark rendering
+     ~200px+ tall on desktop; vector-effect:non-scaling-stroke keeps that same
+     5px in screen pixels even once the whole mark shrinks to the ~64-84px it
+     renders at here, so the stroke ends up chunky enough to fill in most of
+     each letter's counter — reads as no space between letters. Thinning it
+     down (roughly the same ratio the mark itself shrinks by) gives it back the
+     airy, open-stroke look the desktop version has. */
+  .wm-letter{stroke-width:1.5px;}
+  .wm-sub-letter{stroke-width:1.1px;}
   .values__grid{grid-template-columns:1fr;}
   .listings__hint{display:none;}
   .listings__header-right{align-items:flex-start;}
   .listing-card{width:82vw;}
-  .listings__scroller{padding:4px 24px 12px; gap:20px;}
-  .segments__toggle{padding:24px 4px; gap:16px;}
+  .listings__scroller{padding:4px 22px 12px; gap:20px;}
+  .segments__toggle{padding:22px 4px; gap:16px;}
   .segments__meta{display:none;}
-  .segments__panel-content{grid-template-columns:1fr; gap:20px; padding:0 4px 32px;}
+  .segments__panel-content{grid-template-columns:1fr; gap:20px; padding:0 4px 28px;}
   .segments__panel-photo{aspect-ratio:16/9;}
-  .stats__grid{grid-template-columns:1fr; grid-template-rows:none;}
+  .stats__grid{grid-template-columns:1fr; grid-template-rows:none; gap:14px;}
   .stats__item--feature, .stats__item:nth-child(2), .stats__item:nth-child(3){grid-column:1; grid-row:auto;}
+  .stats__item{padding:22px; flex-direction:row; align-items:center; justify-content:flex-start; gap:16px;}
+  .stats__item--feature{padding:24px;}
+  .stats__icon{width:34px; height:34px; margin-bottom:0;}
+  .stats__item--feature .stats__icon{width:38px; height:38px;}
+  .stats__num{margin-top:0;}
   .intro__grid{grid-template-columns:1fr; gap:24px;}
   .searchbar{flex-direction:column; align-items:stretch;}
-  .bigtext{padding:100px 0;}
+  .bigtext{padding:64px 0;}
   .bigtext__toggle{border-width:1.5px;}
-  .darkcta{padding:90px 0;}
-  .finalcta--fill{height:180vh;}
-  .finalcta__text{font-size:clamp(40px, 9vh, 90px);}
+  .darkcta{padding:64px 0;}
+  /* .finalcta--fill .finalcta__text (not the bare class) to out-specificity
+     the base .finalcta--fill .finalcta__text rule in the desktop CSS above —
+     a bare .finalcta__text{} here loses that fight silently (same trap noted
+     there: (0,1,0) vs (0,2,0)), which is why "SEU LUGAR" was clipping off the
+     right edge of the screen — the vh-based desktop clamp was still winning
+     and never actually shrank for narrow viewports. Sized in vw here instead
+     of vh, since what overflows on a phone is width, not height. */
+  .finalcta--fill{height:130vh;}
+  .finalcta--fill .finalcta__text{font-size:clamp(30px, 11.5vw, 60px);}
+  .finalcta__pin{gap:24px;}
   .darkcta__info{gap:28px;}
   .regions__grid{grid-template-columns:1fr; gap:32px;}
   .regions__map-wrap{order:-1; min-height:320px;}
   .regions__map-address{left:14px; bottom:14px; right:14px; max-width:none;}
-  .footer__top{grid-template-columns:1fr 1fr; gap:28px;}
-  .footer__hero{flex-direction:column; align-items:flex-start; gap:24px;}
+  .footer{padding-top:32px;}
+  .footer__hero{flex-direction:column; align-items:flex-start; gap:18px; padding-bottom:24px; margin-bottom:24px;}
   .footer__quick{max-width:none;}
-  .rewired__grid{grid-template-columns:1fr; gap:40px;}
+  .footer__top{grid-template-columns:1fr 1fr; gap:22px; padding-bottom:24px;}
+  .footer__legal{padding:14px 0; gap:10px;}
+  .rewired__grid{grid-template-columns:1fr; gap:32px;}
   .rewired__left-inner{position:static;}
   .rewired__progress-track{height:80px;}
-  /* The 3D scroll-scrubbed carousel needs real screen width to read as depth
-     rather than clutter, and pinned-scroll math gets fights easily with mobile
-     browser chrome show/hide — so phones get the plain stacked list instead.
-     JS keeps computing/writing inline styles regardless; !important is what
-     lets this plain stylesheet rule beat those per-frame inline values. */
-  .steps-track{height:auto;}
-  .steps{
-    position:static; height:auto; display:flex; flex-direction:column; gap:20px;
-    perspective:none; overflow:visible; padding:0;
-  }
-  .steps li{
-    position:static !important; transform:none !important; opacity:1 !important;
-    filter:none !important; box-shadow:0 1px 2px rgba(17,24,21,.04), 0 10px 26px rgba(17,24,21,.05) !important;
-    padding:32px 24px;
-  }
-  .chevrons__row{flex-wrap:wrap; justify-content:center;}
-  .chevron{margin-left:-30px; width:150px; height:190px;}
+  /* Same right-to-left depth carousel as desktop, not the old plain-stacked-list
+     fallback — restored on request. .steps's own sticky top is lower than
+     desktop's 130px since the mobile header now hides itself on downward
+     scroll (see .header--hidden below), so there's rarely 130px of fixed chrome
+     to clear; padding is cut down since 52px a side was sized for a much wider
+     card than a 390px phone has room for. The translateX/rotateY/scale math in
+     updateStepsCarousel() is percentage- or viewport-independent already, so it
+     needed no JS changes to also work at this width. */
+  .steps{top:70px; padding:20px;}
+  .chevrons__row{flex-wrap:nowrap; justify-content:center;}
+  .chevron{width:92px; height:118px; margin-left:-10px;}
+
+  /* Section padding, halved-ish across the board — see note at top of this
+     block. Pin-runway heights (hero, finalcta--fill above) are separate: those
+     control an *effect's* pacing, these just control dead air. */
+  .hero{height:230vh;}
+  .hero__content{padding:0 22px;}
+  .whyus{padding:64px 0 0;}
+  .whyus__media{margin:36px auto 0; padding:0 22px;}
+  .whyus__media video{height:260px;}
+  .chevrons{padding:64px 0;}
+  .chevrons__title{margin-bottom:40px;}
+  .chevrons__row{margin-bottom:40px;}
+  .rewired{padding:64px 0;}
+  .stats{padding:56px 0;}
+  .segments{padding:56px 0;}
+  .segments .container:first-child{margin-bottom:28px;}
+  .listings{padding:56px 0;}
+  .regions{padding:64px 0;}
 }
 
 /* Scroll-triggered reveals — applied across every section, not just the hero */

@@ -6,7 +6,7 @@
 <title>Institucional — Téssera Negócios Imobiliários</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;700;900&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=41">
+<link rel="stylesheet" href="styles.css?v=80">
 </head>
 <body>
 
@@ -34,8 +34,11 @@
   </div>
 
   <div class="burger-menu" id="burgerMenu">
-    <div class="burger-menu__backdrop" id="burgerBackdrop"></div>
     <div class="burger-menu__content">
+      <button class="burger-menu__close" id="burgerCloseBtn" aria-label="Fechar menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 5 19 19M19 5 5 19"/></svg>
+      </button>
+      <img src="images/logo-tessera.svg" alt="Téssera Negócios Imobiliários" class="burger-menu__logo">
       <nav>
         <a href="index.html#comprar">Comprar</a>
         <a href="index.html#alugar">Alugar</a>
@@ -52,7 +55,7 @@
 <main>
 
   <!-- HERO INSTITUCIONAL -->
-  <section class="page-hero">
+  <section class="page-hero" data-header-theme="dark">
     <div class="page-hero__bg" style="background-image:url('images/institucional-hero.jpg')"></div>
     <div class="container page-hero__content">
       <span class="eyebrow eyebrow--light fade-up">Quem somos</span>
@@ -111,7 +114,7 @@
   </section>
 
   <!-- FINAL CTA -->
-  <section class="finalcta">
+  <section class="finalcta" data-header-theme="dark">
     <div class="finalcta__bg" style="background-image:url('images/regions-londrina.jpg')"></div>
     <div class="container finalcta__content reveal-text">
       <h2><span class="is-strong">Sua próxima peça</span> <span class="is-muted">está em algum lugar por aqui.</span></h2>
@@ -121,7 +124,7 @@
 
 </main>
 
-<footer class="footer" id="contato">
+<footer class="footer" id="contato" data-header-theme="dark">
   <div class="container footer__top">
     <div class="footer__brand">
       <img src="images/logo-tessera.svg" alt="Téssera Negócios Imobiliários" class="logo__mark logo__mark--light">
@@ -155,6 +158,6 @@
   </div>
 </footer>
 
-<script src="script.js?v=25"></script>
+<script src="script.js?v=54"></script>
 </body>
 </html>

@@ -173,10 +173,39 @@ if (iconFlight && heroWordmarkIcon) {
 
 let iconFlightState = 'idle'; // idle -> flying -> revealed
 let iconFlightAnimation = null;
+
+// Mobile-only header lifecycle, one state variable instead of several
+// independent flags/classes fighting each other (an earlier version of this
+// tracked "in grace period" separately from the header--hidden class itself
+// and they could go stale relative to each other — e.g. a single big scroll
+// jump past the landing threshold could set header--hidden via the normal
+// scroll-direction check *before* landing ever ran, and revealing afterward
+// only cleared header--pre-landing, leaving that stale header--hidden
+// transform in place under an opacity that had faded back to 1 — invisible
+// AND "revealed" at once). headerPhase is the single source of truth now:
+//   'pre-landing'     → header--pre-landing on, nothing else touches visibility
+//   'grace'           → just landed, showing for a beat; scroll-direction is
+//                       ignored entirely, not just its output
+//   'scroll-controlled' → normal hide-on-scroll-down / show-on-scroll-up
+const HEADER_GRACE_MS = 1200;
+let headerPhase = 'pre-landing';
+let headerGraceTimer = null;
+function revealHeaderThenAutoHide(){
+  headerPhase = 'grace';
+  header.classList.remove('header--pre-landing', 'header--hidden');
+  if (headerGraceTimer) clearTimeout(headerGraceTimer);
+  headerGraceTimer = setTimeout(() => {
+    headerPhase = 'scroll-controlled';
+    headerGraceTimer = null;
+    header.classList.add('header--hidden');
+  }, HEADER_GRACE_MS);
+}
+
 function launchIconFlight(){
   if (prefersReducedMotion || !iconFlight || !flightIconEl || !heroWordmarkIcon || !headerLogo) {
     iconFlightState = 'revealed';
     header.classList.add('logo-revealed');
+    revealHeaderThenAutoHide();
     return;
   }
   const startRect = heroWordmarkIcon.getBoundingClientRect();
@@ -218,6 +247,7 @@ function launchIconFlight(){
   iconFlightAnimation.onfinish = () => {
     iconFlightState = 'revealed';
     header.classList.add('logo-revealed');
+    revealHeaderThenAutoHide();
     iconFlight.style.opacity = '0';
   };
 }
@@ -229,23 +259,84 @@ function updateIconFlight(shouldFly){
   } else if (!shouldFly && iconFlightState !== 'idle') {
     iconFlightState = 'idle';
     header.classList.remove('logo-revealed');
+    // Scrolled back up out of the hero before the icon ever landed (or
+    // before its post-landing grace beat ran out) — cancel that timer and
+    // put the header back in its pre-landing hidden state (mobile only; the
+    // class is a no-op on desktop, see .header--pre-landing in styles.css).
+    headerPhase = 'pre-landing';
+    if (headerGraceTimer) { clearTimeout(headerGraceTimer); headerGraceTimer = null; }
+    header.classList.add('header--pre-landing');
+    header.classList.remove('header--hidden');
     if (iconFlightAnimation) { iconFlightAnimation.cancel(); iconFlightAnimation = null; }
     if (iconFlight) iconFlight.style.opacity = '0';
   }
 }
 updateHero();
 
-// Header — stays fully transparent for the entire hero scroll, only turning
-// solid once the pin releases (exactly when findrealestate's header does).
-// Pages without the big scroll-scrub hero (e.g. institucional.html) don't have
-// a #hero element — falls back to the height of a plain photo `.page-hero` if
-// there is one, or a small threshold if there's no hero-like section at all.
-const pageHero = document.querySelector('.page-hero');
+// Header — always transparent (no solid background anywhere on the page).
+// What it DOES still do is swap its own content between light (white
+// logo/nav/burger, for sitting over a photo or a dark section) and dark
+// (for sitting over the page's mostly-white sections) — driven by which
+// section is actually behind the header right now, not by "have we scrolled
+// past the hero" the way the old solid-background version worked. Any
+// section that should force the light/white header content gets
+// data-header-theme="dark" in the HTML (the hero, bigtext, darkcta and the
+// footer on index.html; page-hero, finalcta and the footer on
+// institucional.html) — add it to any future dark section and this picks it
+// up automatically, no JS changes needed. The footer is handled separately
+// below (see footerEl) rather than through this generic list — its own
+// getBoundingClientRect() is unreliable while scrolled far from it (it's
+// position:sticky, and browsers can report an active-looking "stuck to the
+// viewport bottom" rect for a sticky element that's nowhere near stuck yet
+// — confirmed directly: mid-page it reported top/bottom matching the
+// current viewport exactly), so distance-to-actual-bottom-of-page is used
+// for it instead of its own rect.
+const darkHeaderSections = [...document.querySelectorAll('[data-header-theme="dark"]')]
+  .filter((sec) => sec.tagName !== 'FOOTER');
+const footerEl = document.querySelector('footer[data-header-theme="dark"]');
+// Mobile-only: the header starts hidden on page load (see the
+// header--pre-landing class already on <header> in index.html), then
+// reveals itself for a short beat the moment the hero's icon lands in the
+// logo slot and auto-hides again on its own after HEADER_GRACE_MS (see
+// revealHeaderThenAutoHide/launchIconFlight/updateIconFlight above — they
+// own the header's visibility entirely while headerPhase isn't
+// 'scroll-controlled').
+// The rest of the time — including the remainder of the hero scroll after
+// that beat ends — it's the standard hide-on-scroll-down /
+// show-on-scroll-up below, via the separate, transform-based header--hidden
+// class. Desktop keeps the header always visible throughout, unaffected by
+// any of this — the matchMedia check is what scopes the whole thing to
+// mobile.
+const mobileHeaderMq = window.matchMedia('(max-width:900px)');
+let lastScrollY = window.scrollY;
 function updateHeaderState(){
-  const scrollable = hero
-    ? hero.offsetHeight - window.innerHeight
-    : (pageHero ? pageHero.offsetHeight - 80 : 80);
-  header.classList.toggle('is-solid', window.scrollY >= scrollable - 2);
+  const y = window.scrollY;
+  const headerH = header.offsetHeight || 70;
+
+  // Viewport-relative rect check: the header is position:fixed, so
+  // comparing straight against viewport coordinates (no scrollY math) is
+  // simplest and correct for ordinary (non-sticky) sections.
+  const probe = headerH / 2;
+  const overDarkSection = darkHeaderSections.some((sec) => {
+    const rect = sec.getBoundingClientRect();
+    return probe >= rect.top && probe < rect.bottom;
+  }) || (footerEl && (document.documentElement.scrollHeight - window.innerHeight - y) < footerEl.offsetHeight);
+  header.classList.toggle('header--on-light', !overDarkSection);
+
+  if (mobileHeaderMq.matches) {
+    if (headerPhase === 'scroll-controlled') {
+      const scrollingDown = y > lastScrollY;
+      const pastHeaderHeight = y > headerH;
+      header.classList.toggle('header--hidden', scrollingDown && pastHeaderHeight);
+    }
+    // else ('pre-landing' or 'grace'): visibility is owned entirely by
+    // revealHeaderThenAutoHide()/updateIconFlight, not scroll direction —
+    // touching header--hidden here would fight their state (see the big
+    // comment above headerPhase for the exact bug that caused).
+  } else {
+    header.classList.remove('header--hidden');
+  }
+  lastScrollY = y;
 }
 window.addEventListener('scroll', updateHeaderState, { passive: true });
 window.addEventListener('resize', updateHeaderState);
@@ -604,13 +695,13 @@ updateStepsCarousel();
 
 const burgerBtn = document.getElementById('burgerBtn');
 const burgerMenu = document.getElementById('burgerMenu');
-const burgerBackdrop = document.getElementById('burgerBackdrop');
+const burgerCloseBtn = document.getElementById('burgerCloseBtn');
 
 function toggleMenu(open){
   burgerMenu.classList.toggle('is-open', open);
 }
 burgerBtn?.addEventListener('click', () => toggleMenu(!burgerMenu.classList.contains('is-open')));
-burgerBackdrop?.addEventListener('click', () => toggleMenu(false));
+burgerCloseBtn?.addEventListener('click', () => toggleMenu(false));
 burgerMenu?.querySelectorAll('a').forEach(a => a.addEventListener('click', () => toggleMenu(false)));
 
 // Footer — live Londrina time + open/closed status, computed from the same

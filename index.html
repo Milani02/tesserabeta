@@ -6,11 +6,11 @@
 <title>Téssera Negócios Imobiliários</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;700;900&family=Open+Sans:wght@400;600&family=Oswald:wght@600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=71">
+<link rel="stylesheet" href="styles.css?v=80">
 </head>
 <body>
 
-<header class="header" id="header">
+<header class="header header--pre-landing" id="header">
   <div class="container header__inner">
     <a href="#" class="logo">
       <img src="images/logo-tessera.svg" alt="Téssera Negócios Imobiliários" class="logo__mark">
@@ -34,13 +34,17 @@
   </div>
 
   <div class="burger-menu" id="burgerMenu">
-    <div class="burger-menu__backdrop" id="burgerBackdrop"></div>
     <div class="burger-menu__content">
+      <button class="burger-menu__close" id="burgerCloseBtn" aria-label="Fechar menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 5 19 19M19 5 5 19"/></svg>
+      </button>
+      <img src="images/logo-tessera.svg" alt="Téssera Negócios Imobiliários" class="burger-menu__logo">
       <nav>
         <a href="#comprar">Comprar</a>
         <a href="#alugar">Alugar</a>
         <a href="#lancamentos">Lançamentos</a>
         <a href="#rural">Imóveis Rurais</a>
+        <a href="institucional.html">Institucional</a>
         <a href="#contato">Fale Conosco</a>
       </nav>
       <a href="tel:+554398370005" class="header__phone">(43) 98837-0005</a>
@@ -51,7 +55,7 @@
 <main>
 
   <!-- HERO -->
-  <section class="hero" id="hero">
+  <section class="hero" id="hero" data-header-theme="dark">
     <div class="hero__pin">
       <div class="hero__photo" id="heroPhoto"></div>
       <div class="hero__scrim"></div>
@@ -498,7 +502,7 @@
        marquee scrolls continuously behind a static giant sentence; "comprar"
        and "alugar" inside it are real toggle buttons (see script.js), the
        rest of the sentence is inert display type at the same giant scale. -->
-  <section class="bigtext" id="bigtext">
+  <section class="bigtext" id="bigtext" data-header-theme="dark">
     <div class="bigtext__marquee" aria-hidden="true">
       <div class="bigtext__marquee-track">
         <span>Imóveis · Londrina · Região · Téssera · </span>
@@ -560,7 +564,7 @@
        cursor, both scoped to this section's own box — see script.js), plus
        the magnetic pull on the primary button. No effect reaches outside the
        section's own edges. -->
-  <section class="darkcta">
+  <section class="darkcta" data-header-theme="dark">
     <div class="darkcta__grid-bg" aria-hidden="true"></div>
     <div class="darkcta__glow" aria-hidden="true"></div>
     <div class="container darkcta__stage">
@@ -615,7 +619,7 @@
 
 </main>
 
-<footer class="footer" id="contato">
+<footer class="footer" id="contato" data-header-theme="dark">
   <div class="container footer__hero">
     <div class="footer__status" id="footerStatus">
       <span class="footer__status-dot" aria-hidden="true"></span>
@@ -671,6 +675,6 @@
 
 <div class="icon-flight" id="iconFlight" aria-hidden="true"></div>
 
-<script src="script.js?v=46"></script>
+<script src="script.js?v=54"></script>
 </body>
 </html>
